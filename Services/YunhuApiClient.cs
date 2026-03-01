@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Conversation;
 using Google.Protobuf;
 using Msg;
+using User;
 
 namespace HuFu.Services;
 
@@ -154,6 +155,24 @@ public sealed class YunhuApiClient
 
         var bytes = await response.Content.ReadAsByteArrayAsync();
         return list_message.Parser.ParseFrom(bytes);
+    }
+
+    public async Task<UserInfo> GetUserInfoAsync(string token)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/v1/user/info");
+        request.Headers.Add("token", token);
+        request.Headers.Accept.Clear();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-protobuf"));
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        return UserInfo.Parser.ParseFrom(bytes);
     }
 
     private async Task<T> PostJsonAsync<T>(string path, object? body)

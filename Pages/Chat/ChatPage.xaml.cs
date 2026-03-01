@@ -23,6 +23,55 @@ public sealed partial class ChatPage : Page
         HuFu.Services.MemoryManager.StartMonitoring();
     }
 
+    private bool _isResizing = false;
+
+    private void Splitter_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        ProtectedCursor = Microsoft.UI.Input.InputSystemCursor.Create(Microsoft.UI.Input.InputSystemCursorShape.SizeWestEast);
+    }
+
+    private void Splitter_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isResizing)
+        {
+            ProtectedCursor = null;
+        }
+    }
+
+    private void Splitter_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is FrameworkElement element)
+        {
+            element.CapturePointer(e.Pointer);
+            _isResizing = true;
+        }
+    }
+
+    private void Splitter_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (_isResizing)
+        {
+            var pointerPosition = e.GetCurrentPoint(this).Position;
+            double newWidth = pointerPosition.X;
+            
+            // 考虑 MinWidth 和 MaxWidth
+            if (newWidth >= ConversationColumn.MinWidth && newWidth <= ConversationColumn.MaxWidth)
+            {
+                ConversationColumn.Width = new GridLength(newWidth);
+            }
+        }
+    }
+
+    private void Splitter_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (_isResizing && sender is FrameworkElement element)
+        {
+            element.ReleasePointerCapture(e.Pointer);
+            _isResizing = false;
+            ProtectedCursor = null;
+        }
+    }
+
     private ScrollViewer? GetScrollViewer(DependencyObject element)
     {
         if (element is ScrollViewer sv) return sv;

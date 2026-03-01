@@ -16,12 +16,13 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="3*" />
+            <ColumnDefinition x:Name="ConversationColumn" Width="280" MinWidth="200" MaxWidth="500" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- 会话列表区 -->
-        <Grid Grid.Column="0" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+        <Grid Grid.Column="0">
             <ListView x:Name="ConversationListView" 
                       ItemsSource="{x:Bind ViewModel.Conversations, Mode=OneWay}"
                       SelectedItem="{x:Bind ViewModel.SelectedConversation, Mode=TwoWay}"
@@ -70,8 +71,20 @@
             </ListView>
         </Grid>
 
-        <!-- 聊天界面区 -->
-        <Grid Grid.Column="1" x:Name="ChatDetailGrid">
+        <!-- 原生拖动分隔条 -->
+        <Rectangle Grid.Column="1" 
+                   Width="1" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Stretch"
+                   Fill="{ThemeResource SystemControlForegroundBaseLowBrush}"
+                   PointerEntered="Splitter_PointerEntered"
+                   PointerExited="Splitter_PointerExited"
+                   PointerPressed="Splitter_PointerPressed"
+                   PointerMoved="Splitter_PointerMoved"
+                   PointerReleased="Splitter_PointerReleased" />
+
+        <!-- 聊天界面 -->
+        <Grid Grid.Column="2" x:Name="ChatDetailGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
