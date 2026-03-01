@@ -1,9 +1,13 @@
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+
+using Conversation;
+using Google.Protobuf;
 
 namespace HuFu.Services;
 
@@ -98,6 +102,26 @@ public sealed class YunhuApiClient
         }
 
         return token;
+    }
+
+    public async Task<ConversationList> GetConversationListAsync(string token)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/conversation/list");
+        request.Headers.Add("token", token);
+        request.Headers.Accept.Clear();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-protobuf"));
+
+        request.Content = null;
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        return ConversationList.Parser.ParseFrom(bytes);
     }
 
     private async Task<T> PostJsonAsync<T>(string path, object? body)

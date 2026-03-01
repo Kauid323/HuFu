@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+package user;
+
+// 响应状态
+message Status {
+    int64 number = 1;
+    int32 code = 2;
+    string msg = 3;
+}
+
+// 用户自身信息
+message UserInfo {  // 将 info 改为 UserInfo
+    Status status = 1;
+    UserData data = 2;  // 将 Data 改为 UserData
+    message UserData {
+        string id = 1;
+        string name = 2;
+        string avatar_url = 4;
+        int64 avatar_id = 5;
+        string phone = 6;
+        string email = 7;
+        double coin = 8;
+        int32 is_vip = 9;
+        int64 vip_expired_time = 10;
+        string invitation_code = 12;
+    }
+}
+
+// 获取用户信息请求
+message GetUserRequest {  // 更清晰的命名
+    string id = 2;
+}
+
+// 获取用户信息响应
+message GetUserResponse {  // 更清晰的命名
+    Status status = 1;
+    UserDetailData data = 2;  // 避免和上面的 UserData 混淆
+    message UserDetailData {
+        string id = 1;
+        string name = 2;
+        int64 name_id = 3;
+        string avatar_url = 4;
+        int64 avatar_id = 5;
+        repeated MedalInfo medals = 6;  // 复数形式，避免冲突
+        string register_time = 7;
+        int64 ban_time = 10;
+        int32 online_day = 11;
+        int32 continuous_online_day = 12;
+        int32 is_vip = 13;
+        int64 vip_expired_time = 14;
+        RemarkInfo remark_info = 18;
+        ProfileInfo profile_info = 19;
+        string ip_geo = 20;  // snake_case 命名
+    }
+}
+
+// 勋章列表响应
+message MedalList {  // 避免和字段名冲突
+    Status status = 1;
+    repeated MedalInfo medals = 2;  // 复数形式
+}
+
+// 勋章信息
+message MedalInfo {  // PascalCase
+    int64 id = 1;
+    string name = 2;
+    int64 sort = 5;
+}
+
+// 编辑昵称请求
+message EditNicknameRequest {
+    string name = 3;
+}
+
+// 编辑昵称响应
+message EditNicknameResponse {
+    Status status = 1;
+}
+
+// 编辑头像请求
+message EditAvatarRequest {
+    string url = 2;
+}
+
+// 编辑头像响应
+message EditAvatarResponse {
+    Status status = 1;
+}
+
+// 获取通讯录请求
+message GetAddressBookRequest {
+    string number = 2;
+}
+
+// 获取通讯录响应
+message GetAddressBookResponse {
+    Status status = 1;
+    repeated CategoryData categories = 2;  // 更清晰的命名
+
+    message CategoryData {
+        string category_name = 1;  // 如"用户"，"我加入的群聊"，"机器人"
+        repeated ContactItem contacts = 2;  // 更清晰的命名
+
+        message ContactItem {
+            string chat_id = 1;
+            string name = 2;
+            string avatar_url = 3;
+            int32 permission_level = 4;  // 修正拼写：permission
+            bool no_disturb = 5;  // snake_case
+        }
+    }
+}
+
+// 设备信息
+message DeviceInfo {
+    string user_id = 1;
+    string platform = 3;  // "android"/"windows"/"web"
+    string device_id = 4;
+    int64 login_timestamp = 5;
+}
+
+// 在线设备列表响应
+message OnlineDevicesResponse {
+    Status status = 1;
+    repeated DeviceInfo devices = 2;
+}
+
+// 备注信息
+message RemarkInfo {
+    string remark_name = 1;
+    string phone_number = 2;
+    string extra_remark = 3;  // '[{"key":"bz","value":"zyr"}]'
+}
+
+// 个人资料信息
+message ProfileInfo {
+    string last_active_time = 1;
+    string introduction = 2;
+    int32 gender = 3;  // 1-男，2-女，3-其他
+    uint64 birthday = 4;
+    string city = 5;
+    string district = 6;
+    string address = 7;
+}

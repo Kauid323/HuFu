@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package instruction;
+
+// 获取机器人私聊指令
+message get_bot_instruction {
+  string id = 3; // 机器人id
+}
+
+message Status {
+  uint64 number = 1;
+  uint64 code = 2;
+  string msg = 3;
+}
+
+message instruction_list {
+  Status status = 1;
+  repeated Data data = 2;
+
+  message Data {
+    uint64 command_id = 1;
+    string bot_id = 2;
+    string command_name = 3;
+    uint64 instruction_type = 5;
+    string default_text = 7;
+    string bot_settings_json = 10;
+  }
+}
