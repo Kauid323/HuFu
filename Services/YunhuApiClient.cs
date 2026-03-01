@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Conversation;
 using Google.Protobuf;
+using Msg;
 
 namespace HuFu.Services;
 
@@ -23,7 +24,7 @@ public sealed class YunhuApiClient
 
     public YunhuApiClient(HttpClient? httpClient = null)
     {
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? new HttpClient(new HttpClientHandler { UseProxy = false });
         _httpClient.BaseAddress = BaseUri;
     }
 
@@ -122,6 +123,37 @@ public sealed class YunhuApiClient
 
         var bytes = await response.Content.ReadAsByteArrayAsync();
         return ConversationList.Parser.ParseFrom(bytes);
+    }
+
+    public async Task<list_message> GetMessageListAsync(string token, string chatId, long chatType, long msgCount = 30, string? msgId = null)
+    {
+        var req = new list_message_send
+        {
+            MsgCount = msgCount,
+            ChatType = chatType,
+            ChatId = chatId,
+        };
+        if (!string.IsNullOrWhiteSpace(msgId))
+        {
+            req.MsgId = msgId;
+        }
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/msg/list-message");
+        request.Headers.Add("token", token);
+        request.Headers.Accept.Clear();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-protobuf"));
+        request.Content = new ByteArrayContent(req.ToByteArray());
+        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-protobuf");
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        return list_message.Parser.ParseFrom(bytes);
     }
 
     private async Task<T> PostJsonAsync<T>(string path, object? body)
