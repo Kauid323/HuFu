@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="HuFu.Pages.ShellPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HuFu.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <NavigationView x:Name="NavView" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" Background="Transparent">
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="会话" Tag="conversation">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Message" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="社群" Tag="community">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="People" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="联系人" Tag="contacts">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Contact" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="发现" Tag="discover">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Find" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="我的" Tag="profile">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="ContactInfo" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+
+        <Frame x:Name="ContentFrame" />
+    </NavigationView>
+</Page>

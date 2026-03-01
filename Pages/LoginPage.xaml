@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="HuFu.Pages.LoginPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HuFu.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="24" RowSpacing="12" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Text="登录"
+            FontSize="28"
+            FontWeight="SemiBold" />
+
+        <Pivot Grid.Row="1" x:Name="LoginPivot">
+            <PivotItem Header="邮箱">
+                <StackPanel Spacing="12" Margin="0,16,0,0">
+                    <TextBox Header="邮箱" Text="{x:Bind ViewModel.Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <PasswordBox Header="密码" PasswordChanged="EmailPasswordBox_PasswordChanged" />
+                    <TextBox Header="设备ID" Text="{x:Bind ViewModel.DeviceId, Mode=TwoWay}" />
+                    <TextBox Header="平台" Text="{x:Bind ViewModel.Platform, Mode=TwoWay}" />
+                    <Button
+                        Content="登录"
+                        Click="EmailLogin_Click"
+                        IsEnabled="True" />
+                </StackPanel>
+            </PivotItem>
+
+            <PivotItem Header="短信">
+                <StackPanel Spacing="12" Margin="0,16,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Image x:Name="CaptchaImage" Width="160" Height="64" Stretch="Uniform" />
+                        <Button Content="刷新" Click="RefreshCaptcha_Click" />
+                    </StackPanel>
+                    <TextBox Header="手机号" Text="{x:Bind ViewModel.Mobile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Header="图片验证码" Text="{x:Bind ViewModel.ImageCaptchaCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Content="获取短信" Click="RequestSmsCode_Click" />
+                    <TextBox Header="短信验证码" Text="{x:Bind ViewModel.SmsCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Header="设备ID" Text="{x:Bind ViewModel.DeviceId, Mode=TwoWay}" />
+                    <TextBox Header="平台" Text="{x:Bind ViewModel.Platform, Mode=TwoWay}" />
+                    <Button
+                        Content="登录"
+                        Click="SmsLogin_Click"
+                        IsEnabled="True" />
+                </StackPanel>
+            </PivotItem>
+        </Pivot>
+
+        <StackPanel Grid.Row="2" Margin="0,16,0,0" Spacing="8">
+            <ProgressRing IsActive="{x:Bind ViewModel.IsBusy}" />
+            <InfoBar
+                IsOpen="{x:Bind ViewModel.HasError}"
+                Severity="Error"
+                Title="登录失败"
+                Message="{x:Bind ViewModel.ErrorMessage}" />
+        </StackPanel>
+    </Grid>
+</Page>

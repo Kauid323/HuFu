@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "HuFu (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "HuFu (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
