@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:HuFu.Pages"
     xmlns:converters="using:HuFu.Converters"
+    xmlns:controls="using:HuFu.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -181,17 +182,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- 底部输入区（占位，不是输入框） -->
-            <Grid Grid.Row="2" Padding="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                <Border CornerRadius="10"
-                        Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"
-                        BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}"
-                        BorderThickness="1"
-                        Padding="12,10">
-                    <TextBlock Text="输入消息…（TODO: 输入组件）"
-                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                </Border>
-            </Grid>
+            <controls:ChatInputControl Grid.Row="2" />
         </Grid>
     </Grid>
 </Page>

@@ -9,6 +9,8 @@ using HuFu.Services;
 using Microsoft.UI.Xaml;
 using System.Linq;
 using Msg;
+using Microsoft.UI.Xaml.Input;
+using Windows.Foundation;
 
 namespace HuFu.Pages;
 
@@ -20,7 +22,14 @@ public sealed partial class ChatPage : Page
     {
         InitializeComponent();
         Loaded += ChatPage_Loaded;
+        Unloaded += ChatPage_Unloaded;
         HuFu.Services.MemoryManager.StartMonitoring();
+    }
+
+    private async void ChatPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        // 页面卸载时自动保存会话列表到缓存
+        await ViewModel.SaveConversationsToCacheAsync();
     }
 
     private bool _isResizing = false;
@@ -194,21 +203,13 @@ public class ChatViewModel : INotifyPropertyChanged
 
     public async Task LoadConversationsAsync()
     {
-        // 1. 先从本地缓存加载，实现秒开
-        var cached = await LocalCacheService.LoadConversationsAsync<ConversationDisplayItem>();
-        if (cached != null && cached.Count > 0)
-        {
-            Conversations.Clear();
-            foreach (var item in cached) Conversations.Add(item);
-            if (SelectedConversation is null) SelectedConversation = Conversations[0];
-        }
-
         var token = SessionStore.Token;
         if (string.IsNullOrEmpty(token)) return;
 
         IsBusy = true;
         try
         {
+            // 1. 优先尝试从网络加载
             var list = await _api.GetConversationListAsync(token);
             var newList = new List<ConversationDisplayItem>();
             
@@ -225,10 +226,9 @@ public class ChatViewModel : INotifyPropertyChanged
                 });
             }
 
-            // 2. 更新 UI 并保存到加密缓存
+            // 更新 UI
             Conversations.Clear();
             foreach (var item in newList) Conversations.Add(item);
-            await LocalCacheService.SaveConversationsAsync(newList);
 
             if (SelectedConversation is null && Conversations.Count > 0)
             {
@@ -237,12 +237,28 @@ public class ChatViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            // TODO: Handle error
-            System.Diagnostics.Debug.WriteLine($"Failed to load conversations: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Network failed, trying local cache: {ex.Message}");
+            
+            // 2. 网络失败或断网时，才从本地缓存加载
+            var cached = await LocalCacheService.LoadConversationsAsync<ConversationDisplayItem>();
+            if (cached != null && cached.Count > 0)
+            {
+                Conversations.Clear();
+                foreach (var item in cached) Conversations.Add(item);
+                if (SelectedConversation is null) SelectedConversation = Conversations[0];
+            }
         }
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    public async Task SaveConversationsToCacheAsync()
+    {
+        if (Conversations.Count > 0)
+        {
+            await LocalCacheService.SaveConversationsAsync(Conversations.ToList());
         }
     }
 

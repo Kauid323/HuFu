@@ -12,60 +12,72 @@
 
     <Page.Resources>
         <converters:RefererImageConverter x:Key="RefererImageConverter" />
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
     </Page.Resources>
 
     <ScrollViewer>
-        <StackPanel Padding="40" Spacing="24" MaxWidth="600" HorizontalAlignment="Left">
+        <StackPanel Padding="40" Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
             <TextBlock Text="个人资料" FontSize="28" FontWeight="Bold" />
 
-            <Grid ColumnSpacing="20">
+            <!-- 头部：头像与基本信息 -->
+            <Grid ColumnSpacing="24">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <PersonPicture Width="100" Height="100" 
+                <PersonPicture Width="120" Height="100" 
                                DisplayName="{x:Bind ViewModel.Nickname, Mode=OneWay}"
                                ProfilePicture="{x:Bind ViewModel.AvatarUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}" />
 
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                    <TextBlock Text="{x:Bind ViewModel.Nickname, Mode=OneWay}" FontSize="20" FontWeight="SemiBold" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind ViewModel.Nickname, Mode=OneWay}" FontSize="24" FontWeight="Bold" />
+                        <Border Background="{ThemeResource AccentFillColorDefaultBrush}" 
+                                CornerRadius="4" Padding="8,2" 
+                                Visibility="{x:Bind ViewModel.VipExpiry, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                            <TextBlock Text="VIP" FontSize="12" Foreground="White" FontWeight="Bold"/>
+                        </Border>
+                    </StackPanel>
+                    
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="UID:" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                        <TextBlock Text="{x:Bind ViewModel.Uid, Mode=OneWay}" IsTextSelectionEnabled="True" />
+                        <TextBlock Text="UID:" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" FontSize="14" />
+                        <TextBlock Text="{x:Bind ViewModel.Uid, Mode=OneWay}" IsTextSelectionEnabled="True" FontSize="14" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
 
+            <!-- 账户信息卡片 -->
+            <TextBlock Text="账户绑定" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,-12" />
             <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="20">
+                    BorderThickness="1" CornerRadius="8" Padding="20">
                 <StackPanel Spacing="16">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="手机号" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                        <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Mobile, Mode=OneWay}" IsTextSelectionEnabled="True" />
-                    </Grid>
-                    
+                    <local:InfoRow Label="手机号" Value="{x:Bind ViewModel.Mobile, Mode=OneWay}" Icon="&#xE717;" />
                     <MenuFlyoutSeparator />
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="角色" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                        <TextBlock Grid.Column="1" Text="普通用户" />
-                    </Grid>
+                    <local:InfoRow Label="邮箱" Value="{x:Bind ViewModel.Email, Mode=OneWay}" Icon="&#xE710;" />
                 </StackPanel>
             </Border>
 
-            <Button Content="退出登录" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Stretch" Padding="0,10" />
+            <!-- 资产与身份卡片 -->
+            <TextBlock Text="等级与资产" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,-12" />
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="20">
+                <StackPanel Spacing="16">
+                    <local:InfoRow Label="我的硬币" Value="{x:Bind ViewModel.Coin, Mode=OneWay}" Icon="&#xE945;" />
+                    <MenuFlyoutSeparator />
+                    <local:InfoRow Label="当前身份" Value="{x:Bind ViewModel.VipStatus, Mode=OneWay}" SubValue="{x:Bind ViewModel.VipExpiry, Mode=OneWay}" Icon="&#xE77B;" />
+                    <MenuFlyoutSeparator />
+                    <local:InfoRow Label="邀请码" Value="{x:Bind ViewModel.InvitationCode, Mode=OneWay}" Icon="&#xE8BD;" IsCopyable="True" />
+                </StackPanel>
+            </Border>
+
+            <Button Content="退出登录" 
+                    Style="{StaticResource AccentButtonStyle}" 
+                    HorizontalAlignment="Stretch" 
+                    Padding="0,12" 
+                    Margin="0,12,0,0" />
         </StackPanel>
     </ScrollViewer>
 </Page>

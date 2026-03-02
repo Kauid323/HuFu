@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="HuFu.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HuFu.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <ScrollViewer>
+        <StackPanel Padding="40" Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
+            <TextBlock Text="设置" FontSize="28" FontWeight="Bold" />
+
+            <StackPanel Spacing="8">
+                <TextBlock Text="发送快捷键" FontSize="16" FontWeight="SemiBold" />
+                <ComboBox x:Name="ShortcutComboBox" 
+                          HorizontalAlignment="Left" 
+                          Width="200"
+                          SelectionChanged="ShortcutComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Enter" Tag="Enter" />
+                    <ComboBoxItem Content="Ctrl + Enter" Tag="CtrlEnter" />
+                </ComboBox>
+                <TextBlock Text="设置发送消息时使用的组合键。" 
+                           FontSize="12" 
+                           Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
