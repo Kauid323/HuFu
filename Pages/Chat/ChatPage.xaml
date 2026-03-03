@@ -27,7 +27,9 @@
             <ListView x:Name="ConversationListView" 
                       ItemsSource="{x:Bind ViewModel.Conversations, Mode=OneWay}"
                       SelectedItem="{x:Bind ViewModel.SelectedConversation, Mode=TwoWay}"
-                      SelectionMode="Single">
+                      SelectionMode="Single"
+                      IsRightTapEnabled="True"
+                      RightTapped="ConversationListView_RightTapped">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:ConversationDisplayItem">
                         <Grid Margin="0,8" ColumnSpacing="12">
@@ -35,6 +37,16 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
+
+                            <Grid.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="在新窗口中打开" Click="OpenInNewWindow_Click">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE8A7;" />
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                </MenuFlyout>
+                            </Grid.ContextFlyout>
 
                             <!-- 头像 -->
                             <PersonPicture ProfilePicture="{x:Bind AvatarUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}" 
@@ -84,105 +96,6 @@
                    PointerMoved="Splitter_PointerMoved"
                    PointerReleased="Splitter_PointerReleased" />
 
-        <!-- 聊天界面 -->
-        <Grid Grid.Column="2" x:Name="ChatDetailGrid">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <!-- 顶栏 -->
-            <Grid Grid.Row="0" Padding="16,10" ColumnSpacing="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Spacing="2">
-                    <TextBlock Text="{x:Bind ViewModel.ActiveConversationTitle, Mode=OneWay}"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{x:Bind ViewModel.ActiveConversationSubtitle, Mode=OneWay}"
-                               FontSize="12"
-                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                </StackPanel>
-
-                <Button Grid.Column="1" MinWidth="36" MinHeight="36" Padding="0" Background="Transparent">
-                    <Button.Content>
-                        <FontIcon Glyph="&#xE712;" />
-                    </Button.Content>
-                </Button>
-            </Grid>
-
-            <!-- 消息区 -->
-            <Grid Grid.Row="1">
-                <ListView x:Name="MessageListView" 
-                          ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}"
-                          SelectionMode="None">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsStackPanel VerticalAlignment="Bottom" ItemsUpdatingScrollMode="KeepLastItemInView" />
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="local:MessageDisplayItem">
-                            <Grid Padding="10,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <PersonPicture DisplayName="{x:Bind SenderName, Mode=OneWay}"
-                                               ProfilePicture="{x:Bind SenderAvatarUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
-                                               Width="32" Height="32"
-                                               VerticalAlignment="Top" />
-
-                                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="2" HorizontalAlignment="Left">
-                                    <Grid HorizontalAlignment="Left">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{x:Bind SenderName, Mode=OneWay}"
-                                                   FontSize="12"
-                                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{x:Bind TimeString, Mode=OneWay}"
-                                                   FontSize="11"
-                                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                                   Margin="8,0,0,0" />
-                                    </Grid>
-
-                                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
-                                            CornerRadius="8" 
-                                            Padding="10,8"
-                                            HorizontalAlignment="Left"
-                                            MaxWidth="400">
-                                        <TextBlock Text="{x:Bind Text, Mode=OneWay}" 
-                                                   TextWrapping="WrapWholeWords" 
-                                                   IsTextSelectionEnabled="True" />
-                                    </Border>
-                                </StackPanel>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12"
-                            Visibility="{x:Bind ViewModel.EmptyHintVisibility, Mode=OneWay}">
-                    <SymbolIcon Symbol="Message" RenderTransformOrigin="0.5,0.5">
-                        <SymbolIcon.RenderTransform>
-                            <ScaleTransform ScaleX="2" ScaleY="2" />
-                        </SymbolIcon.RenderTransform>
-                    </SymbolIcon>
-                    <TextBlock Text="选择一个会话开始聊天"
-                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                </StackPanel>
-            </Grid>
-
-            <controls:ChatInputControl Grid.Row="2" />
-        </Grid>
+        <controls:ChatDetailControl Grid.Column="2" ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
     </Grid>
 </Page>

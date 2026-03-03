@@ -104,6 +104,7 @@ public sealed partial class ProfilePage : Page
                     Nickname = data.Name;
                     AvatarUrl = data.AvatarUrl;
                     Uid = data.Id;
+                    SessionStore.UserId = data.Id;
                     Mobile = string.IsNullOrEmpty(data.Phone) ? "未绑定" : data.Phone;
                     Email = string.IsNullOrEmpty(data.Email) ? "未绑定" : data.Email;
                     Coin = data.Coin.ToString("F2");

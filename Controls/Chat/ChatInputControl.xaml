@@ -14,6 +14,7 @@
           MaxHeight="500">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -29,8 +30,45 @@
                    PointerMoved="ResizeHandle_PointerMoved"
                    PointerReleased="ResizeHandle_PointerReleased" />
 
+        <!-- 功能按钮栏 -->
+        <StackPanel Grid.Row="1" 
+                    Orientation="Horizontal" 
+                    Spacing="4" 
+                    Padding="8,4"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}">
+            <Button MinWidth="32" MinHeight="32" Padding="4" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="发送文件">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xE8E5;" FontSize="16" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            
+            <Button MinWidth="32" MinHeight="32" Padding="4" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="发送图片">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xEB9F;" FontSize="16" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            
+            <Button MinWidth="32" MinHeight="32" Padding="4" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="表情">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xE76E;" FontSize="16" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+
+            <TextBlock Text="TODO: 功能待实现" 
+                       FontSize="11" 
+                       Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                       VerticalAlignment="Center"
+                       Margin="8,0,0,0" />
+        </StackPanel>
+
         <RichEditBox x:Name="InputBox"
-                     Grid.Row="1"
+                     Grid.Row="2"
                      Padding="12,8"
                      PlaceholderText="输入消息…"
                      BorderThickness="0"

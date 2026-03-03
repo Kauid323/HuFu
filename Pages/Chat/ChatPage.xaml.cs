@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HuFu.Services;
+using HuFu.Helpers;
 using Microsoft.UI.Xaml;
 using System.Linq;
 using Msg;
@@ -17,6 +18,7 @@ namespace HuFu.Pages;
 public sealed partial class ChatPage : Page
 {
     public ChatViewModel ViewModel { get; } = new();
+    private MessageScrollHelper? _scrollHelper;
 
     public ChatPage()
     {
@@ -26,8 +28,25 @@ public sealed partial class ChatPage : Page
         HuFu.Services.MemoryManager.StartMonitoring();
     }
 
+    private ListView? GetMessageListView()
+    {
+        if (Content is Grid root)
+        {
+            // ChatDetailControl is in column 2
+            foreach (var child in root.Children)
+            {
+                if (child is HuFu.Controls.ChatDetailControl detail)
+                {
+                    return detail.MessageList;
+                }
+            }
+        }
+        return null;
+    }
+
     private async void ChatPage_Unloaded(object sender, RoutedEventArgs e)
     {
+        _scrollHelper?.Cleanup();
         // 页面卸载时自动保存会话列表到缓存
         await ViewModel.SaveConversationsToCacheAsync();
     }
@@ -81,64 +100,43 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    private ScrollViewer? GetScrollViewer(DependencyObject element)
-    {
-        if (element is ScrollViewer sv) return sv;
-        for (int i = 0; i < Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(element); i++)
-        {
-            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(element, i);
-            var result = GetScrollViewer(child);
-            if (result != null) return result;
-        }
-        return null;
-    }
-
-    private void OnMessageListScroll(object? sender, ScrollViewerViewChangedEventArgs e)
-    {
-        if (sender is ScrollViewer sv)
-        {
-            // 只有当滚动停止且处于顶部时触发
-            if (!e.IsIntermediate && sv.VerticalOffset < 1.0)
-            {
-                System.Diagnostics.Debug.WriteLine("Top reached, triggering LoadMoreMessagesAsync");
-                _ = ViewModel.LoadMoreMessagesAsync();
-            }
-        }
-    }
-
     private void ChatPage_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        // 尝试获取 ScrollViewer
-        var scrollViewer = GetScrollViewer(MessageListView);
-        if (scrollViewer != null)
+        var messageList = GetMessageListView();
+        if (messageList is not null)
         {
-            scrollViewer.ViewChanged += OnMessageListScroll;
-            System.Diagnostics.Debug.WriteLine("ScrollViewer found and event attached.");
-        }
-        else
-        {
-            // 如果加载时还没生成，监听 LayoutUpdated 再次尝试
-            MessageListView.LayoutUpdated += MessageListView_LayoutUpdated;
-            System.Diagnostics.Debug.WriteLine("ScrollViewer NOT found initially, waiting for LayoutUpdated.");
+            _scrollHelper = new MessageScrollHelper(messageList, () => ViewModel.LoadMoreMessagesAsync());
+            _scrollHelper.Setup();
         }
         _ = ViewModel.LoadConversationsAsync();
     }
 
-    private void MessageListView_LayoutUpdated(object? sender, object e)
+    private ConversationDisplayItem? _rightTappedConversation;
+
+    private void ConversationListView_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
     {
-        var scrollViewer = GetScrollViewer(MessageListView);
-        if (scrollViewer != null)
+        if (e.OriginalSource is FrameworkElement element)
         {
-            MessageListView.LayoutUpdated -= MessageListView_LayoutUpdated;
-            scrollViewer.ViewChanged += OnMessageListScroll;
-            System.Diagnostics.Debug.WriteLine("ScrollViewer found in LayoutUpdated and event attached.");
+            _rightTappedConversation = element.DataContext as ConversationDisplayItem;
         }
+    }
+
+    private void OpenInNewWindow_Click(object sender, RoutedEventArgs e)
+    {
+        if (_rightTappedConversation is not null)
+        {
+            var window = new ChatDetailWindow(_rightTappedConversation);
+            window.Activate();
+        }
+        _rightTappedConversation = null;
     }
 }
 
 public class ChatViewModel : INotifyPropertyChanged
 {
     private readonly YunhuApiClient _api = new();
+
+    public string CurrentUserId { get; } = SessionStore.UserId;
 
     public ChatViewModel()
     {
@@ -317,6 +315,13 @@ public class ChatViewModel : INotifyPropertyChanged
                             Text = m.Content?.Text ?? string.Empty,
                             TimeString = FormatTimestamp((long)m.SendTime),
                             Direction = m.Direction ?? string.Empty,
+                            // proto: Msg.direction = "消息位置,左边/右边"。服务端已标注方向，优先使用它判断是否为“我的消息”。
+                            // 兼容：若 direction 为空，再回退用 sender.chat_id 与当前用户 id 判断（不同接口/场景字段可能不一致）。
+                            IsMine = string.Equals(m.Direction, "right", StringComparison.OrdinalIgnoreCase)
+                                    || (string.IsNullOrEmpty(m.Direction)
+                                        && !string.IsNullOrEmpty(CurrentUserId)
+                                        && string.Equals(m.Sender?.ChatId, CurrentUserId, StringComparison.OrdinalIgnoreCase)),
+                            Tags = m.Sender?.Tag?.Select(t => new TagDisplayItem { Text = t.Text, Color = t.Color }).ToList() ?? new(),
                         });
                     }
                     _oldestMsgId = Messages.FirstOrDefault()?.MsgId;
@@ -357,6 +362,12 @@ public class ChatViewModel : INotifyPropertyChanged
                     Text = m.Content?.Text ?? string.Empty,
                     TimeString = FormatTimestamp((long)m.SendTime),
                     Direction = m.Direction ?? string.Empty,
+                    // proto: Msg.direction = "消息位置,左边/右边"，优先使用它判断是否为“我的消息”。
+                    IsMine = string.Equals(m.Direction, "right", StringComparison.OrdinalIgnoreCase)
+                            || (string.IsNullOrEmpty(m.Direction)
+                                && !string.IsNullOrEmpty(CurrentUserId)
+                                && string.Equals(m.Sender?.ChatId, CurrentUserId, StringComparison.OrdinalIgnoreCase)),
+                    Tags = m.Sender?.Tag?.Select(t => new TagDisplayItem { Text = t.Text, Color = t.Color }).ToList() ?? new(),
                 });
             }
             
@@ -389,6 +400,50 @@ public class ChatViewModel : INotifyPropertyChanged
         return dt.ToString("MM-dd");
     }
 
+    public async Task<bool> SendMessageAsync(string text)
+    {
+        if (SelectedConversation is null || string.IsNullOrWhiteSpace(text)) return false;
+
+        var token = SessionStore.Token;
+        if (string.IsNullOrEmpty(token)) return false;
+
+        try
+        {
+            var resp = await _api.SendMessageAsync(token, SelectedConversation.ChatId, (long)SelectedConversation.ChatType, text);
+            
+            if (resp.Status?.Code == 1)
+            {
+                System.Diagnostics.Debug.WriteLine("Message sent successfully");
+                
+                // 发送成功后添加消息到本地列表，而不是重新加载
+                var newMsg = new MessageDisplayItem
+                {
+                    MsgId = Guid.NewGuid().ToString("N"),
+                    SenderName = "我", // TODO: 从用户信息获取
+                    SenderAvatarUrl = string.Empty,
+                    Text = text,
+                    TimeString = FormatTimestamp(DateTimeOffset.Now.ToUnixTimeMilliseconds()),
+                    Direction = "right",
+                    IsMine = true,
+                    Tags = new()
+                };
+                
+                Messages.Add(newMsg);
+                return true;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to send message: {resp.Status?.Msg}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error sending message: {ex.Message}");
+            return false;
+        }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
@@ -409,9 +464,19 @@ public class ConversationDisplayItem
 public class MessageDisplayItem
 {
     public string MsgId { get; set; } = string.Empty;
+    public string SenderId { get; set; } = string.Empty;
     public string SenderName { get; set; } = string.Empty;
     public string SenderAvatarUrl { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
     public string TimeString { get; set; } = string.Empty;
     public string Direction { get; set; } = string.Empty;
+    public bool IsMine { get; set; }
+
+    public List<TagDisplayItem> Tags { get; set; } = new();
+}
+
+public class TagDisplayItem
+{
+    public string Text { get; set; } = string.Empty;
+    public string Color { get; set; } = string.Empty;
 }

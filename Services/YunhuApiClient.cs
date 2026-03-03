@@ -175,6 +175,40 @@ public sealed class YunhuApiClient
         return UserInfo.Parser.ParseFrom(bytes);
     }
 
+    public async Task<send_message> SendMessageAsync(string token, string chatId, long chatType, string text)
+    {
+        var msgId = Guid.NewGuid().ToString("N"); // 生成不带杠号的消息ID
+
+        var req = new send_message_send
+        {
+            MsgId = msgId,
+            ChatId = chatId,
+            ChatType = chatType,
+            ContentType = 1, // 1-文本消息
+            Content = new send_message_send.Types.Content
+            {
+                Text = text
+            }
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/msg/send-message");
+        request.Headers.Add("token", token);
+        request.Headers.Accept.Clear();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-protobuf"));
+        request.Content = new ByteArrayContent(req.ToByteArray());
+        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-protobuf");
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        return send_message.Parser.ParseFrom(bytes);
+    }
+
     private async Task<T> PostJsonAsync<T>(string path, object? body)
     {
         HttpContent? content = null;

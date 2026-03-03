@@ -10,6 +10,8 @@ public static class SessionStore
     private static readonly PasswordVault Vault = new();
 
     private static string? _token;
+    private static string? _userId;
+
     public static string? Token
     {
         get
@@ -17,11 +19,12 @@ public static class SessionStore
             if (_token != null) return _token;
             try
             {
-                var credential = Vault.RetrieveAll().FirstOrDefault(c => c.Resource == ResourceName);
-                if (credential != null)
+                var credentials = Vault.RetrieveAll().Where(c => c.Resource == ResourceName).ToList();
+                var tokenCred = credentials.FirstOrDefault(c => c.UserName == "Token");
+                if (tokenCred != null)
                 {
-                    credential.RetrievePassword();
-                    _token = credential.Password;
+                    tokenCred.RetrievePassword();
+                    _token = tokenCred.Password;
                 }
             }
             catch { }
@@ -30,21 +33,52 @@ public static class SessionStore
         set
         {
             _token = value;
+            SaveCredential("Token", _token);
+        }
+    }
+
+    public static string? UserId
+    {
+        get
+        {
+            if (_userId != null) return _userId;
             try
             {
-                // Clear existing
-                foreach (var c in Vault.RetrieveAll().Where(c => c.Resource == ResourceName))
+                var credentials = Vault.RetrieveAll().Where(c => c.Resource == ResourceName).ToList();
+                var userCred = credentials.FirstOrDefault(c => c.UserName == "UserId");
+                if (userCred != null)
                 {
-                    Vault.Remove(c);
-                }
-
-                if (!string.IsNullOrEmpty(_token))
-                {
-                    Vault.Add(new PasswordCredential(ResourceName, UserName, _token));
+                    userCred.RetrievePassword();
+                    _userId = userCred.Password;
                 }
             }
             catch { }
+            return _userId;
         }
+        set
+        {
+            _userId = value;
+            SaveCredential("UserId", _userId);
+        }
+    }
+
+    private static void SaveCredential(string userName, string? password)
+    {
+        try
+        {
+            // Remove existing for this specific userName
+            var existing = Vault.RetrieveAll().Where(c => c.Resource == ResourceName && c.UserName == userName).ToList();
+            foreach (var c in existing)
+            {
+                Vault.Remove(c);
+            }
+
+            if (!string.IsNullOrEmpty(password))
+            {
+                Vault.Add(new PasswordCredential(ResourceName, userName, password));
+            }
+        }
+        catch { }
     }
 
     public static bool IsLoggedIn => !string.IsNullOrEmpty(Token);
@@ -52,5 +86,6 @@ public static class SessionStore
     public static void Logout()
     {
         Token = null;
+        UserId = null;
     }
 }

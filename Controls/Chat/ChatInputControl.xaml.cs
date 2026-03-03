@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
 using HuFu.Services;
+using HuFu.Pages;
 using Microsoft.UI.Text;
 using Windows.System;
 
@@ -15,7 +16,17 @@ public sealed partial class ChatInputControl : UserControl
         InitializeComponent();
     }
 
-    public event EventHandler<string>? SendRequested;
+    public ChatViewModel? ViewModel
+    {
+        get => GetValue(ViewModelProperty) as ChatViewModel;
+        set => SetValue(ViewModelProperty, value);
+    }
+
+    public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
+        nameof(ViewModel),
+        typeof(ChatViewModel),
+        typeof(ChatInputControl),
+        new PropertyMetadata(null));
 
     private bool _isResizing = false;
     private double _initialPointerY;
@@ -50,7 +61,7 @@ public sealed partial class ChatInputControl : UserControl
         if (_isResizing)
         {
             var currentY = e.GetCurrentPoint(null).Position.Y;
-            var deltaY = _initialPointerY - currentY; // 向上拖拽是减小 Y，所以用初始减当前得到增加的高度
+            var deltaY = _initialPointerY - currentY;
             var newHeight = _initialHeight + deltaY;
 
             if (newHeight >= RootGrid.MinHeight && newHeight <= RootGrid.MaxHeight)
@@ -72,7 +83,6 @@ public sealed partial class ChatInputControl : UserControl
 
     private void RootGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        // 点击整个组件区域都聚焦到输入框
         InputBox.Focus(FocusState.Programmatic);
     }
 
@@ -86,7 +96,7 @@ public sealed partial class ChatInputControl : UserControl
             if (e.Key == VirtualKey.Enter && !KeyboardState.IsKeyDown(VirtualKey.Control) && !KeyboardState.IsKeyDown(VirtualKey.Shift))
             {
                 shouldSend = true;
-                e.Handled = true; // 拦截 Enter，防止换行
+                e.Handled = true;
             }
         }
         else if (shortcut == SettingsService.SendShortcut.CtrlEnter)
@@ -94,35 +104,37 @@ public sealed partial class ChatInputControl : UserControl
             if (e.Key == VirtualKey.Enter && KeyboardState.IsKeyDown(VirtualKey.Control))
             {
                 shouldSend = true;
-                e.Handled = true; // 拦截 Ctrl+Enter，防止换行
+                e.Handled = true;
             }
         }
 
         if (shouldSend)
         {
-            ExecuteSend();
+            _ = ExecuteSendAsync();
         }
     }
 
-    private void ExecuteSend()
+    private async System.Threading.Tasks.Task ExecuteSendAsync()
     {
+        if (ViewModel is null) return;
+
         InputBox.Document.GetText(TextGetOptions.UseObjectText, out string text);
         var content = text?.TrimEnd('\r', '\n');
 
         if (!string.IsNullOrWhiteSpace(content))
         {
-            SendRequested?.Invoke(this, content);
-            InputBox.Document.SetText(TextSetOptions.None, string.Empty);
+            var success = await ViewModel.SendMessageAsync(content);
             
-            // 弹出 Toast (目前使用简单提示)
-            ShowToast($"发送预览: {content}");
+            if (success)
+            {
+                InputBox.Document.SetText(TextSetOptions.None, string.Empty);
+                System.Diagnostics.Debug.WriteLine($"消息发送成功: {content}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"消息发送失败: {content}");
+            }
         }
-    }
-
-    private void ShowToast(string message)
-    {
-        // 简单实现：在控制台输出并在 UI 上显示（之后可以接入真正的 Windows Toast）
-        System.Diagnostics.Debug.WriteLine(message);
     }
 }
 
