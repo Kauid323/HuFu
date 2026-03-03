@@ -14,27 +14,8 @@
     </Page.Resources>
 
     <NavigationView x:Name="NavView" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" Background="Transparent">
+        <!-- MenuItems 将在代码中动态加载 -->
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="会话" Tag="conversation">
-                <NavigationViewItem.Icon>
-                    <SymbolIcon Symbol="Message" />
-                </NavigationViewItem.Icon>
-            </NavigationViewItem>
-            <NavigationViewItem Content="社群" Tag="community">
-                <NavigationViewItem.Icon>
-                    <SymbolIcon Symbol="People" />
-                </NavigationViewItem.Icon>
-            </NavigationViewItem>
-            <NavigationViewItem Content="联系人" Tag="contacts">
-                <NavigationViewItem.Icon>
-                    <SymbolIcon Symbol="Contact" />
-                </NavigationViewItem.Icon>
-            </NavigationViewItem>
-            <NavigationViewItem Content="发现" Tag="discover">
-                <NavigationViewItem.Icon>
-                    <SymbolIcon Symbol="Find" />
-                </NavigationViewItem.Icon>
-            </NavigationViewItem>
         </NavigationView.MenuItems>
 
         <NavigationView.FooterMenuItems>

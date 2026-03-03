@@ -4,6 +4,8 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using System.Linq;
 using HuFu.Services;
 
 namespace HuFu.Pages;
@@ -15,13 +17,106 @@ public sealed partial class ShellPage : Page
     public ShellPage()
     {
         InitializeComponent();
+        
+        LoadNavigationItems();
+        
         NavView.SelectionChanged += NavView_SelectionChanged;
-
         Loaded += ShellPage_Loaded;
+        
+        // 监听 Frame 导航事件
+        ContentFrame.Navigated += ContentFrame_Navigated;
+        
+        // 监听导航配置变更事件
+        SettingsService.NavigationConfigChanged += OnNavigationConfigChanged;
 
         // default
         ContentFrame.Navigate(typeof(ChatPage));
-        NavView.SelectedItem = NavView.MenuItems[0];
+        if (NavView.MenuItems.Count > 0)
+        {
+            NavView.SelectedItem = NavView.MenuItems[0];
+        }
+    }
+
+    private void OnNavigationConfigChanged(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("ShellPage: Navigation config changed event received");
+        
+        // 在 UI 线程上刷新
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            LoadNavigationItems();
+        });
+    }
+
+    private Type? _previousPageType;
+
+    private void ContentFrame_Navigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        // 如果从设置页返回，刷新导航项
+        if (_previousPageType == typeof(SettingsPage) && e.SourcePageType != typeof(SettingsPage))
+        {
+            LoadNavigationItems();
+            
+            // 重新选中当前页
+            var currentTag = e.SourcePageType.Name switch
+            {
+                nameof(ChatPage) => "conversation",
+                nameof(CommunityPage) => "community",
+                nameof(ContactsPage) => "contacts",
+                nameof(DiscoverPage) => "discover",
+                nameof(ProfilePage) => "profile",
+                _ => null
+            };
+
+            if (currentTag != null)
+            {
+                var item = NavView.MenuItems.Cast<NavigationViewItem>()
+                    .FirstOrDefault(x => x.Tag?.ToString() == currentTag);
+                if (item != null)
+                {
+                    NavView.SelectedItem = item;
+                }
+            }
+        }
+
+        _previousPageType = e.SourcePageType;
+    }
+
+    private void LoadNavigationItems()
+    {
+        NavView.MenuItems.Clear();
+        
+        var items = SettingsService.GetNavigationItems()
+            .Where(x => x.IsVisible)
+            .OrderBy(x => x.Order);
+
+        foreach (var item in items)
+        {
+            var navItem = new NavigationViewItem
+            {
+                Content = item.Title,
+                Tag = item.Tag
+            };
+
+            // 设置图标
+            if (!string.IsNullOrEmpty(item.Icon))
+            {
+                if (Enum.TryParse<Symbol>(item.Icon, out var symbol))
+                {
+                    navItem.Icon = new SymbolIcon(symbol);
+                }
+            }
+
+            NavView.MenuItems.Add(navItem);
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"Loaded {NavView.MenuItems.Count} navigation items");
+    }
+
+    public void RefreshNavigation()
+    {
+        System.Diagnostics.Debug.WriteLine("ShellPage: RefreshNavigation called");
+        LoadNavigationItems();
     }
 
     private async void ShellPage_Loaded(object sender, RoutedEventArgs e)

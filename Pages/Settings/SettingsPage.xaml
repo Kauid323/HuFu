@@ -26,6 +26,50 @@
                            FontSize="12" 
                            Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
             </StackPanel>
+
+            <StackPanel Spacing="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="侧边栏导航" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="恢复默认" Click="ResetNavigation_Click" />
+                </Grid>
+                <TextBlock Text="拖动项目可以调整顺序，使用开关控制显示/隐藏。" 
+                           FontSize="12" 
+                           Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                
+                <ListView x:Name="NavigationItemsList"
+                          ItemsSource="{x:Bind ViewModel.NavigationItems, Mode=OneWay}"
+                          SelectionMode="None"
+                          CanReorderItems="True"
+                          AllowDrop="True"
+                          ReorderMode="Enabled"
+                          Margin="0,8,0,0">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:NavigationItemViewModel">
+                            <Grid Padding="12,8" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon Glyph="&#xE700;" FontSize="16" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                                
+                                <TextBlock Grid.Column="1" Text="{x:Bind Title, Mode=OneWay}" VerticalAlignment="Center" />
+                                
+                                <ToggleSwitch Grid.Column="2" 
+                                              IsOn="{x:Bind IsVisible, Mode=TwoWay}" 
+                                              OnContent="" 
+                                              OffContent=""
+                                              MinWidth="40" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </Page>
