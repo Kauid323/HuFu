@@ -101,10 +101,8 @@ public sealed partial class ShellPage : Page
             // 设置图标
             if (!string.IsNullOrEmpty(item.Icon))
             {
-                if (Enum.TryParse<Symbol>(item.Icon, out var symbol))
-                {
-                    navItem.Icon = new SymbolIcon(symbol);
-                }
+                // 使用 FontIcon 显示 Unicode 图标
+                navItem.Icon = new FontIcon { Glyph = item.Icon };
             }
 
             NavView.MenuItems.Add(navItem);

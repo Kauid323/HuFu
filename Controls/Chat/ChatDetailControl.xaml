@@ -14,6 +14,8 @@
         <converters:RefererImageConverter x:Key="RefererImageConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:StringToColorConverter x:Key="StringToColorConverter" />
+        <converters:ContentTypeToVisibilityConverter x:Key="ContentTypeToVisibilityConverter" />
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <Style x:Key="MessageContainerStyle" TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="0" />
@@ -42,21 +44,222 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Spacing="2">
+            <StackPanel Spacing="2" VerticalAlignment="Center">
                 <TextBlock Text="{x:Bind ViewModel.ActiveConversationTitle, Mode=OneWay}"
                            FontSize="16"
                            FontWeight="SemiBold"
                            TextTrimming="CharacterEllipsis" />
                 <TextBlock Text="{x:Bind ViewModel.ActiveConversationSubtitle, Mode=OneWay}"
                            FontSize="12"
-                           Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                           Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                           Visibility="{x:Bind ViewModel.SubtitleVisibility, Mode=OneWay}" />
             </StackPanel>
 
-            <Button Grid.Column="1" MinWidth="36" MinHeight="36" Padding="0" Background="Transparent">
+            <Button Grid.Column="1" 
+                    MinWidth="36" 
+                    MinHeight="36" 
+                    Padding="0" 
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="InfoButton_Click">
                 <Button.Content>
                     <FontIcon Glyph="&#xE712;" />
                 </Button.Content>
             </Button>
+        </Grid>
+
+        <!-- 右侧信息面板 -->
+        <Grid x:Name="InfoPanel"
+              Grid.Row="0"
+              Grid.RowSpan="3"
+              Width="320"
+              HorizontalAlignment="Right"
+              Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+              BorderThickness="1,0,0,0"
+              Visibility="Collapsed"
+              Canvas.ZIndex="1000">
+            <Grid.RenderTransform>
+                <TranslateTransform X="320" />
+            </Grid.RenderTransform>
+            <Grid.Shadow>
+                <ThemeShadow />
+            </Grid.Shadow>
+            
+            <ScrollViewer>
+                <StackPanel Padding="16" Spacing="16">
+                    <!-- 关闭按钮 -->
+                    <Grid>
+                        <TextBlock Text="群聊信息" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Button HorizontalAlignment="Right" 
+                                Background="Transparent" 
+                                BorderThickness="0"
+                                MinWidth="32"
+                                MinHeight="32"
+                                Padding="0"
+                                Click="CloseInfoPanel_Click">
+                            <FontIcon Glyph="&#xE711;" FontSize="14" />
+                        </Button>
+                    </Grid>
+
+                    <!-- 群信息内容 -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind ViewModel.HasGroupInfo, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <!-- 群头像和名称 -->
+                        <StackPanel HorizontalAlignment="Center" Spacing="12">
+                            <PersonPicture Width="80" Height="80"
+                                           ProfilePicture="{x:Bind ViewModel.GroupInfo.AvatarUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
+                                           DisplayName="{x:Bind ViewModel.GroupInfo.Name, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.GroupInfo.Name, Mode=OneWay}"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- 群信息卡片 -->
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel Spacing="12">
+                                <!-- 群 ID -->
+                                <Grid>
+                                    <TextBlock Text="群 ID" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock Text="{x:Bind ViewModel.GroupInfo.GroupId, Mode=OneWay}"
+                                               HorizontalAlignment="Right"
+                                               FontSize="13" />
+                                </Grid>
+
+                                <!-- 群人数 -->
+                                <Grid>
+                                    <TextBlock Text="群成员" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock HorizontalAlignment="Right" FontSize="13">
+                                        <Run Text="{x:Bind ViewModel.GroupInfo.Member, Mode=OneWay}" />
+                                        <Run Text=" 人" />
+                                    </TextBlock>
+                                </Grid>
+
+                                <!-- 群简介 -->
+                                <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.GroupInfo.Introduction, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <TextBlock Text="群简介" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock Text="{x:Bind ViewModel.GroupInfo.Introduction, Mode=OneWay}"
+                                               TextWrapping="Wrap"
+                                               FontSize="13" />
+                                </StackPanel>
+
+                                <!-- 群分类 -->
+                                <Grid Visibility="{x:Bind ViewModel.GroupInfo.CategoryName, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <TextBlock Text="分类" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock Text="{x:Bind ViewModel.GroupInfo.CategoryName, Mode=OneWay}"
+                                               HorizontalAlignment="Right"
+                                               FontSize="13" />
+                                </Grid>
+
+                                <!-- 群口令 -->
+                                <Grid Visibility="{x:Bind ViewModel.GroupInfo.GroupCode, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <TextBlock Text="群口令" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock Text="{x:Bind ViewModel.GroupInfo.GroupCode, Mode=OneWay}"
+                                               HorizontalAlignment="Right"
+                                               FontSize="13"
+                                               FontFamily="Consolas" />
+                                </Grid>
+
+                                <!-- 我的群昵称 -->
+                                <Grid Visibility="{x:Bind ViewModel.GroupInfo.MyGroupNickname, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <TextBlock Text="我的群昵称" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock Text="{x:Bind ViewModel.GroupInfo.MyGroupNickname, Mode=OneWay}"
+                                               HorizontalAlignment="Right"
+                                               FontSize="13" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 群设置 -->
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="群设置" 
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,4" />
+
+                                <!-- 免打扰 -->
+                                <Grid>
+                                    <TextBlock Text="消息免打扰" 
+                                               FontSize="13"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.GroupInfo.DoNotDisturb, Mode=OneWay}"
+                                                  HorizontalAlignment="Right"
+                                                  IsEnabled="False" />
+                                </Grid>
+
+                                <!-- 置顶 -->
+                                <Grid>
+                                    <TextBlock Text="置顶会话" 
+                                               FontSize="13"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.GroupInfo.Top, Mode=OneWay}"
+                                                  HorizontalAlignment="Right"
+                                                  IsEnabled="False" />
+                                </Grid>
+
+                                <!-- 进群免审核 -->
+                                <Grid>
+                                    <TextBlock Text="进群免审核" 
+                                               FontSize="13"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.GroupInfo.DirectJoin, Mode=OneWay}"
+                                                  HorizontalAlignment="Right"
+                                                  IsEnabled="False" />
+                                </Grid>
+
+                                <!-- 历史消息 -->
+                                <Grid>
+                                    <TextBlock Text="新成员可见历史消息" 
+                                               FontSize="13"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.GroupInfo.HistoryMsg, Mode=OneWay}"
+                                                  HorizontalAlignment="Right"
+                                                  IsEnabled="False" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- 空状态提示 -->
+                    <StackPanel VerticalAlignment="Center" 
+                                HorizontalAlignment="Center" 
+                                Spacing="12"
+                                Margin="0,40,0,0"
+                                Visibility="{x:Bind ViewModel.HasGroupInfo, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}">
+                        <SymbolIcon Symbol="People" 
+                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                    RenderTransformOrigin="0.5,0.5">
+                            <SymbolIcon.RenderTransform>
+                                <ScaleTransform ScaleX="1.5" ScaleY="1.5" />
+                            </SymbolIcon.RenderTransform>
+                        </SymbolIcon>
+                        <TextBlock Text="选择一个群聊查看信息"
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                   FontSize="13" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
 
         <!-- 消息区 -->
@@ -121,15 +324,27 @@
                                                Margin="8,0,0,0" />
                                 </StackPanel>
 
-                                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
-                                        CornerRadius="8" 
+                                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                        CornerRadius="8"
                                         Padding="10,8"
                                         HorizontalAlignment="Left"
                                         MaxWidth="400">
-
-                                    <TextBlock Text="{x:Bind Text, Mode=OneWay}" 
-                                               TextWrapping="WrapWholeWords" 
-                                               IsTextSelectionEnabled="True" />
+                                    <StackPanel>
+                                        <!-- 文本消息 -->
+                                        <TextBlock Text="{x:Bind Text, Mode=OneWay}"
+                                                   TextWrapping="WrapWholeWords"
+                                                   IsTextSelectionEnabled="True"
+                                                   Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=1}" />
+                                        
+                                        <!-- 图片消息 -->
+                                        <Image Source="{x:Bind ImageUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
+                                               MaxWidth="300"
+                                               MaxHeight="300"
+                                               Stretch="Uniform"
+                                               Tapped="Image_Tapped"
+                                               Tag="{x:Bind ImageUrl, Mode=OneWay}"
+                                               Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=2}" />
+                                    </StackPanel>
                                 </Border>
                             </StackPanel>
 
@@ -167,15 +382,28 @@
                                                VerticalAlignment="Center" />
                                 </StackPanel>
 
-                                <Border CornerRadius="8" 
+                                <Border CornerRadius="8"
                                         Padding="10,8"
                                         HorizontalAlignment="Right"
                                         MaxWidth="400"
                                         Background="{ThemeResource SystemControlHighlightAccentBrush}">
-                                    <TextBlock Text="{x:Bind Text, Mode=OneWay}" 
-                                               TextWrapping="WrapWholeWords" 
-                                               IsTextSelectionEnabled="True"
-                                               Foreground="{ThemeResource SystemControlForegroundAltHighBrush}" />
+                                    <StackPanel>
+                                        <!-- 文本消息 -->
+                                        <TextBlock Text="{x:Bind Text, Mode=OneWay}"
+                                                   TextWrapping="WrapWholeWords"
+                                                   IsTextSelectionEnabled="True"
+                                                   Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
+                                                   Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=1}" />
+                                        
+                                        <!-- 图片消息 -->
+                                        <Image Source="{x:Bind ImageUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
+                                               MaxWidth="300"
+                                               MaxHeight="300"
+                                               Stretch="Uniform"
+                                               Tapped="Image_Tapped"
+                                               Tag="{x:Bind ImageUrl, Mode=OneWay}"
+                                               Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=2}" />
+                                    </StackPanel>
                                 </Border>
                             </StackPanel>
                         </Grid>

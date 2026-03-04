@@ -136,7 +136,7 @@ public class ChatViewModel : INotifyPropertyChanged
 {
     private readonly YunhuApiClient _api = new();
 
-    public string CurrentUserId { get; } = SessionStore.UserId;
+    public string CurrentUserId { get; } = SessionStore.UserId ?? string.Empty;
 
     public ChatViewModel()
     {
@@ -192,12 +192,40 @@ public class ChatViewModel : INotifyPropertyChanged
         private set { _activeConversationSubtitle = value; OnPropertyChanged(); }
     }
 
+    private int _activeConversationChatType = 0;
+    public int ActiveConversationChatType
+    {
+        get => _activeConversationChatType;
+        private set 
+        { 
+            _activeConversationChatType = value; 
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(SubtitleVisibility));
+        }
+    }
+
+    public Visibility SubtitleVisibility => ActiveConversationChatType == 2 ? Visibility.Visible : Visibility.Collapsed;
+
     private Visibility _emptyHintVisibility = Visibility.Visible;
     public Visibility EmptyHintVisibility
     {
         get => _emptyHintVisibility;
         private set { _emptyHintVisibility = value; OnPropertyChanged(); }
     }
+
+    private GroupInfoDisplayItem? _groupInfo;
+    public GroupInfoDisplayItem? GroupInfo
+    {
+        get => _groupInfo;
+        private set 
+        { 
+            _groupInfo = value; 
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasGroupInfo));
+        }
+    }
+
+    public bool HasGroupInfo => GroupInfo != null;
 
     public async Task LoadConversationsAsync()
     {
@@ -266,13 +294,74 @@ public class ChatViewModel : INotifyPropertyChanged
         {
             ActiveConversationTitle = "";
             ActiveConversationSubtitle = "";
+            ActiveConversationChatType = 0;
             EmptyHintVisibility = Visibility.Visible;
             return;
         }
 
         ActiveConversationTitle = SelectedConversation.Name;
-        ActiveConversationSubtitle = "TODO: 群聊人数";
+        ActiveConversationChatType = SelectedConversation.ChatType;
+        
+        // 如果是群聊（ChatType == 2），异步加载群人数
+        if (SelectedConversation.ChatType == 2)
+        {
+            _ = LoadGroupMemberCountAsync();
+        }
+        else
+        {
+            ActiveConversationSubtitle = "";
+        }
+        
         EmptyHintVisibility = Visibility.Collapsed;
+    }
+
+    private async Task LoadGroupMemberCountAsync()
+    {
+        if (SelectedConversation is null) return;
+        
+        var token = SessionStore.Token;
+        if (string.IsNullOrEmpty(token)) return;
+
+        try
+        {
+            var groupInfo = await _api.GetGroupInfoAsync(token, SelectedConversation.ChatId);
+            if (groupInfo?.Data != null)
+            {
+                var data = groupInfo.Data;
+                // 显示群人数，即使是 0 也显示
+                ActiveConversationSubtitle = $"{data.Member} 人";
+
+                // 保存群信息用于 InfoPanel 显示
+                GroupInfo = new GroupInfoDisplayItem
+                {
+                    GroupId = data.GroupId,
+                    Name = data.Name,
+                    AvatarUrl = data.AvatarUrl,
+                    Introduction = data.Introduction,
+                    Member = (long)data.Member,
+                    CreateBy = data.CreateBy,
+                    DirectJoin = data.DirectJoin == 1,
+                    HistoryMsg = data.HistoryMsg == 1,
+                    CategoryName = data.CategoryName,
+                    DoNotDisturb = data.DoNotDisturb == 1,
+                    Top = data.Top == 1,
+                    Owner = data.Owner,
+                    MyGroupNickname = data.MyGroupNickname,
+                    GroupCode = data.GroupCode
+                };
+            }
+            else
+            {
+                ActiveConversationSubtitle = "";
+                GroupInfo = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to load group member count: {ex.Message}");
+            ActiveConversationSubtitle = "";
+            GroupInfo = null;
+        }
     }
 
     private bool _isLoadingMore;
@@ -315,7 +404,9 @@ public class ChatViewModel : INotifyPropertyChanged
                             Text = m.Content?.Text ?? string.Empty,
                             TimeString = FormatTimestamp((long)m.SendTime),
                             Direction = m.Direction ?? string.Empty,
-                            // proto: Msg.direction = "消息位置,左边/右边"。服务端已标注方向，优先使用它判断是否为“我的消息”。
+                            ContentType = (ulong)m.ContentType,
+                            ImageUrl = m.Content?.ImageUrl ?? string.Empty,
+                            // proto: Msg.direction = "消息位置,左边/右边"。服务端已标注方向，优先使用它判断是否为"我的消息"。
                             // 兼容：若 direction 为空，再回退用 sender.chat_id 与当前用户 id 判断（不同接口/场景字段可能不一致）。
                             IsMine = string.Equals(m.Direction, "right", StringComparison.OrdinalIgnoreCase)
                                     || (string.IsNullOrEmpty(m.Direction)
@@ -362,7 +453,9 @@ public class ChatViewModel : INotifyPropertyChanged
                     Text = m.Content?.Text ?? string.Empty,
                     TimeString = FormatTimestamp((long)m.SendTime),
                     Direction = m.Direction ?? string.Empty,
-                    // proto: Msg.direction = "消息位置,左边/右边"，优先使用它判断是否为“我的消息”。
+                    ContentType = (ulong)m.ContentType,
+                    ImageUrl = m.Content?.ImageUrl ?? string.Empty,
+                    // proto: Msg.direction = "消息位置,左边/右边"，优先使用它判断是否为"我的消息"。
                     IsMine = string.Equals(m.Direction, "right", StringComparison.OrdinalIgnoreCase)
                             || (string.IsNullOrEmpty(m.Direction)
                                 && !string.IsNullOrEmpty(CurrentUserId)
@@ -471,6 +564,8 @@ public class MessageDisplayItem
     public string TimeString { get; set; } = string.Empty;
     public string Direction { get; set; } = string.Empty;
     public bool IsMine { get; set; }
+    public ulong ContentType { get; set; } = 1; // 1-文本，2-图片
+    public string ImageUrl { get; set; } = string.Empty;
 
     public List<TagDisplayItem> Tags { get; set; } = new();
 }
@@ -479,4 +574,22 @@ public class TagDisplayItem
 {
     public string Text { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
+}
+
+public class GroupInfoDisplayItem
+{
+    public string GroupId { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string AvatarUrl { get; set; } = string.Empty;
+    public string Introduction { get; set; } = string.Empty;
+    public long Member { get; set; }
+    public string CreateBy { get; set; } = string.Empty;
+    public bool DirectJoin { get; set; }
+    public bool HistoryMsg { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
+    public bool DoNotDisturb { get; set; }
+    public bool Top { get; set; }
+    public string Owner { get; set; } = string.Empty;
+    public string MyGroupNickname { get; set; } = string.Empty;
+    public string GroupCode { get; set; } = string.Empty;
 }

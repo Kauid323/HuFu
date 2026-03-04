@@ -7,12 +7,14 @@ namespace HuFu.Services;
 public static class SettingsService
 {
     private const string SendShortcutKey = "SendShortcut";
+    private const string CustomShortcutKey = "CustomShortcut";
     private const string NavigationItemsKey = "NavigationItems";
     
     public enum SendShortcut
     {
         Enter,
-        CtrlEnter
+        CtrlEnter,
+        Custom
     }
 
     public static SendShortcut CurrentSendShortcut
@@ -32,6 +34,19 @@ public static class SettingsService
         }
     }
 
+    public static string CustomShortcutValue
+    {
+        get
+        {
+            var value = SessionStore.GetSetting(CustomShortcutKey);
+            return value ?? string.Empty;
+        }
+        set
+        {
+            SessionStore.SaveSetting(CustomShortcutKey, value);
+        }
+    }
+
     public class NavigationItemConfig
     {
         public string Tag { get; set; } = string.Empty;
@@ -43,10 +58,10 @@ public static class SettingsService
 
     private static readonly List<NavigationItemConfig> DefaultNavigationItems = new()
     {
-        new() { Tag = "conversation", Title = "会话", Icon = "Message", IsVisible = true, Order = 0 },
-        new() { Tag = "community", Title = "社群", Icon = "People", IsVisible = true, Order = 1 },
-        new() { Tag = "contacts", Title = "联系人", Icon = "Contact", IsVisible = true, Order = 2 },
-        new() { Tag = "discover", Title = "发现", Icon = "Find", IsVisible = true, Order = 3 },
+        new() { Tag = "conversation", Title = "会话", Icon = "\uE8F2", IsVisible = true, Order = 0 },
+        new() { Tag = "community", Title = "社群", Icon = "\uE716", IsVisible = true, Order = 1 },
+        new() { Tag = "contacts", Title = "联系人", Icon = "\uE77B", IsVisible = true, Order = 2 },
+        new() { Tag = "discover", Title = "发现", Icon = "\uE721", IsVisible = true, Order = 3 },
     };
 
     // 导航配置变更事件

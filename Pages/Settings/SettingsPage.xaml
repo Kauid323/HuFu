@@ -10,66 +10,268 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <ScrollViewer>
-        <StackPanel Padding="40" Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
-            <TextBlock Text="设置" FontSize="28" FontWeight="Bold" />
-
-            <StackPanel Spacing="8">
-                <TextBlock Text="发送快捷键" FontSize="16" FontWeight="SemiBold" />
-                <ComboBox x:Name="ShortcutComboBox" 
-                          HorizontalAlignment="Left" 
-                          Width="200"
-                          SelectionChanged="ShortcutComboBox_SelectionChanged">
-                    <ComboBoxItem Content="Enter" Tag="Enter" />
-                    <ComboBoxItem Content="Ctrl + Enter" Tag="CtrlEnter" />
-                </ComboBox>
-                <TextBlock Text="设置发送消息时使用的组合键。" 
+        <StackPanel Padding="32,24" Spacing="20" HorizontalAlignment="Stretch">
+            <!-- 页面标题 -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE713;" FontSize="28" Foreground="{ThemeResource AccentFillColorDefaultBrush}" />
+                    <TextBlock Text="设置" FontSize="28" FontWeight="Bold" VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" 
+                           Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}" 
                            FontSize="12" 
-                           Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-            </StackPanel>
+                           Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center" />
+            </Grid>
 
-            <StackPanel Spacing="8">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="侧边栏导航" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Content="恢复默认" Click="ResetNavigation_Click" />
-                </Grid>
-                <TextBlock Text="拖动项目可以调整顺序，使用开关控制显示/隐藏。" 
-                           FontSize="12" 
-                           Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                
-                <ListView x:Name="NavigationItemsList"
-                          ItemsSource="{x:Bind ViewModel.NavigationItems, Mode=OneWay}"
-                          SelectionMode="None"
-                          CanReorderItems="True"
-                          AllowDrop="True"
-                          ReorderMode="Enabled"
-                          Margin="0,8,0,0">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="local:NavigationItemViewModel">
-                            <Grid Padding="12,8" ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+            <!-- 统计信息卡片 - 横向展示 -->
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                                <FontIcon Glyph="&#xE700;" FontSize="16" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
-                                
-                                <TextBlock Grid.Column="1" Text="{x:Bind Title, Mode=OneWay}" VerticalAlignment="Center" />
-                                
-                                <ToggleSwitch Grid.Column="2" 
-                                              IsOn="{x:Bind IsVisible, Mode=TwoWay}" 
-                                              OnContent="" 
-                                              OffContent=""
-                                              MinWidth="40" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackPanel>
+                <!-- 导航项统计 -->
+                <Border Grid.Column="0" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                    <StackPanel Spacing="8">
+                        <FontIcon Glyph="&#xE8A0;" FontSize="24" Foreground="{ThemeResource AccentFillColorDefaultBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.VisibleItemsCount, Mode=OneWay}" 
+                                   FontSize="24" 
+                                   FontWeight="Bold" />
+                        <TextBlock Text="可见导航项" 
+                                   FontSize="12" 
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 快捷键信息 -->
+                <Border Grid.Column="1" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                    <StackPanel Spacing="8">
+                        <FontIcon Glyph="&#xE765;" FontSize="24" Foreground="#FF6B9BD8" />
+                        <TextBlock Text="{x:Bind ViewModel.CurrentShortcutDisplay, Mode=OneWay}" 
+                                   FontSize="24" 
+                                   FontWeight="Bold" />
+                        <TextBlock Text="发送快捷键" 
+                                   FontSize="12" 
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 主题信息 -->
+                <Border Grid.Column="2" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                    <StackPanel Spacing="8">
+                        <FontIcon Glyph="&#xE771;" FontSize="24" Foreground="#FFFFA500" />
+                        <TextBlock Text="系统" 
+                                   FontSize="24" 
+                                   FontWeight="Bold" />
+                        <TextBlock Text="当前主题" 
+                                   FontSize="12" 
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- 快捷键设置卡片 -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="20">
+                <StackPanel Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <FontIcon Glyph="&#xE765;" FontSize="20" Foreground="{ThemeResource AccentFillColorDefaultBrush}" />
+                        <TextBlock Text="发送快捷键" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    
+                    <TextBlock Text="设置发送消息时使用的组合键。" 
+                               FontSize="13" 
+                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                               Margin="32,0,0,8" />
+                    
+                    <ComboBox x:Name="ShortcutComboBox" 
+                              HorizontalAlignment="Stretch" 
+                              MaxWidth="400"
+                              Margin="32,0,0,0"
+                              SelectionChanged="ShortcutComboBox_SelectionChanged">
+                        <ComboBoxItem Content="Enter" Tag="Enter">
+                            <ComboBoxItem.ContentTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE751;" FontSize="14" />
+                                        <TextBlock Text="Enter" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBoxItem.ContentTemplate>
+                        </ComboBoxItem>
+                        <ComboBoxItem Content="Ctrl + Enter" Tag="CtrlEnter">
+                            <ComboBoxItem.ContentTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE92C;" FontSize="14" />
+                                        <TextBlock Text="Ctrl + Enter" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBoxItem.ContentTemplate>
+                        </ComboBoxItem>
+                        <ComboBoxItem Content="自定义按键" Tag="Custom">
+                            <ComboBoxItem.ContentTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE70F;" FontSize="14" />
+                                        <TextBlock Text="自定义按键" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBoxItem.ContentTemplate>
+                        </ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- 侧边栏导航设置卡片 -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="20">
+                <StackPanel Spacing="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon Glyph="&#xE8A0;" FontSize="20" Foreground="{ThemeResource AccentFillColorDefaultBrush}" />
+                            <TextBlock Text="侧边栏导航" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Grid.Column="1" 
+                                Content="恢复默认" 
+                                Click="ResetNavigation_Click"
+                                Style="{ThemeResource AccentButtonStyle}" />
+                    </Grid>
+                    
+                    <TextBlock Text="拖动项目可以调整顺序，使用开关控制显示/隐藏。" 
+                               FontSize="13" 
+                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                               Margin="32,0,0,0" />
+                    
+                    <ListView x:Name="NavigationItemsList"
+                              ItemsSource="{x:Bind ViewModel.NavigationItems, Mode=OneWay}"
+                              SelectionMode="None"
+                              CanReorderItems="True"
+                              AllowDrop="True"
+                              ReorderMode="Enabled"
+                              Background="{ThemeResource LayerFillColorDefaultBrush}"
+                              CornerRadius="6"
+                              Padding="4"
+                              Margin="0,8,0,0">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="local:NavigationItemViewModel">
+                                <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                        CornerRadius="4"
+                                        Margin="4"
+                                        Padding="16,12">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <FontIcon Glyph="&#xE700;" 
+                                                  FontSize="14" 
+                                                  Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" 
+                                                  VerticalAlignment="Center" />
+                                        
+                                        <FontIcon Grid.Column="1" 
+                                                  Glyph="{x:Bind Icon, Mode=OneWay}" 
+                                                  FontSize="20" 
+                                                  Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                                                  VerticalAlignment="Center"
+                                                  Margin="4,0,0,0" />
+                                        
+                                        <TextBlock Grid.Column="2" 
+                                                   Text="{x:Bind Title, Mode=OneWay}" 
+                                                   FontSize="15"
+                                                   VerticalAlignment="Center"
+                                                   Margin="8,0,0,0" />
+                                        
+                                        <ToggleSwitch Grid.Column="3" 
+                                                      IsOn="{x:Bind IsVisible, Mode=TwoWay}" 
+                                                      OnContent="显示" 
+                                                      OffContent="隐藏"
+                                                      MinWidth="80" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+            </Border>
+
+            <!-- 关于信息 -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="20">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <FontIcon Glyph="&#xE946;" FontSize="20" Foreground="{ThemeResource AccentFillColorDefaultBrush}" />
+                        <TextBlock Text="关于" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Grid Margin="32,8,0,0" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Text="应用版本："
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}" />
+                        
+                        <TextBlock Grid.Row="1"
+                                   Text="开发者："
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                        <TextBlock Grid.Row="1" Grid.Column="1"
+                                   Text="那狗吧" />
+                        
+                        <TextBlock Grid.Row="2"
+                                   Text="图片缓存："
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                        <Button Grid.Row="2" Grid.Column="1"
+                                Content="打开缓存目录"
+                                Click="OpenImageCache_Click"
+                                HorizontalAlignment="Left" />
+                    </Grid>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>

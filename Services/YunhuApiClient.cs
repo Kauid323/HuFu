@@ -10,6 +10,7 @@ using Conversation;
 using Google.Protobuf;
 using Msg;
 using User;
+using Group;
 
 namespace HuFu.Services;
 
@@ -207,6 +208,31 @@ public sealed class YunhuApiClient
 
         var bytes = await response.Content.ReadAsByteArrayAsync();
         return send_message.Parser.ParseFrom(bytes);
+    }
+
+    public async Task<info> GetGroupInfoAsync(string token, string groupId)
+    {
+        var req = new info_send
+        {
+            GroupId = groupId
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/group/info");
+        request.Headers.Add("token", token);
+        request.Headers.Accept.Clear();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-protobuf"));
+        request.Content = new ByteArrayContent(req.ToByteArray());
+        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-protobuf");
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        return info.Parser.ParseFrom(bytes);
     }
 
     private async Task<T> PostJsonAsync<T>(string path, object? body)
