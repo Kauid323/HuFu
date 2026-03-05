@@ -183,6 +183,36 @@
                                                HorizontalAlignment="Right"
                                                FontSize="13" />
                                 </Grid>
+
+                                <!-- 所属社区 -->
+                                <Grid Visibility="{x:Bind ViewModel.GroupInfo.CommunityName, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <TextBlock Text="所属社区" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock Text="{x:Bind ViewModel.GroupInfo.CommunityName, Mode=OneWay}"
+                                               HorizontalAlignment="Right"
+                                               FontSize="13" />
+                                </Grid>
+
+                                <!-- 我的权限 -->
+                                <Grid>
+                                    <TextBlock Text="我的权限" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock Text="{x:Bind ViewModel.GroupInfo.PermissionLevelText, Mode=OneWay}"
+                                               HorizontalAlignment="Right"
+                                               FontSize="13" />
+                                </Grid>
+
+                                <!-- 消息自动删除 -->
+                                <Grid>
+                                    <TextBlock Text="消息自动删除" 
+                                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                               FontSize="13" />
+                                    <TextBlock Text="{x:Bind ViewModel.GroupInfo.AutoDeleteMessageText, Mode=OneWay}"
+                                               HorizontalAlignment="Right"
+                                               FontSize="13" />
+                                </Grid>
                             </StackPanel>
                         </Border>
 
@@ -197,6 +227,46 @@
                                            FontSize="14"
                                            FontWeight="SemiBold"
                                            Margin="0,0,0,4" />
+
+                                <!-- 私有群 -->
+                                <Grid>
+                                    <TextBlock Text="私有群聊" 
+                                               FontSize="13"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.GroupInfo.IsPrivate, Mode=OneWay}"
+                                                  HorizontalAlignment="Right"
+                                                  IsEnabled="False" />
+                                </Grid>
+
+                                <!-- 群推荐 -->
+                                <Grid>
+                                    <TextBlock Text="加入群推荐" 
+                                               FontSize="13"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.GroupInfo.Recommandation, Mode=OneWay}"
+                                                  HorizontalAlignment="Right"
+                                                  IsEnabled="False" />
+                                </Grid>
+
+                                <!-- 隐藏群成员 -->
+                                <Grid>
+                                    <TextBlock Text="隐藏群成员" 
+                                               FontSize="13"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.GroupInfo.HideGroupMembers, Mode=OneWay}"
+                                                  HorizontalAlignment="Right"
+                                                  IsEnabled="False" />
+                                </Grid>
+
+                                <!-- 禁止上传到群云盘 -->
+                                <Grid>
+                                    <TextBlock Text="禁止上传到群云盘" 
+                                               FontSize="13"
+                                               VerticalAlignment="Center" />
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.GroupInfo.DenyMembersUploadToGroupDisk, Mode=OneWay}"
+                                                  HorizontalAlignment="Right"
+                                                  IsEnabled="False" />
+                                </Grid>
 
                                 <!-- 免打扰 -->
                                 <Grid>
@@ -267,10 +337,15 @@
             <ListView x:Name="MessageListView" 
                       ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}"
                       SelectionMode="None"
-                      ItemContainerStyle="{StaticResource MessageContainerStyle}">
+                      ItemContainerStyle="{StaticResource MessageContainerStyle}"
+                      IncrementalLoadingTrigger="Edge"
+                      IncrementalLoadingThreshold="5">
                 <ListView.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <ItemsStackPanel VerticalAlignment="Bottom" ItemsUpdatingScrollMode="KeepLastItemInView" />
+                        <ItemsStackPanel VerticalAlignment="Bottom" 
+                                         ItemsUpdatingScrollMode="KeepLastItemInView"
+                                         CacheLength="2"
+                                         AreStickyGroupHeadersEnabled="False" />
                     </ItemsPanelTemplate>
                 </ListView.ItemsPanel>
                 <ListView.ItemTemplate>
@@ -329,7 +404,7 @@
                                         Padding="10,8"
                                         HorizontalAlignment="Left"
                                         MaxWidth="400">
-                                    <StackPanel>
+                                    <StackPanel Spacing="6">
                                         <!-- 文本消息 -->
                                         <TextBlock Text="{x:Bind Text, Mode=OneWay}"
                                                    TextWrapping="WrapWholeWords"
@@ -344,6 +419,32 @@
                                                Tapped="Image_Tapped"
                                                Tag="{x:Bind ImageUrl, Mode=OneWay}"
                                                Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=2}" />
+
+                                        <!-- 引用消息 -->
+                                        <Border Background="#3A3A3A"
+                                                CornerRadius="4"
+                                                Padding="8,6"
+                                                BorderBrush="#2A2A2A"
+                                                BorderThickness="2,0,0,0"
+                                                Visibility="{x:Bind HasQuote, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{x:Bind QuoteMsgText, Mode=OneWay}"
+                                                           FontSize="12"
+                                                           Foreground="#B0B0B0"
+                                                           TextWrapping="Wrap"
+                                                           MaxLines="3"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           IsTextSelectionEnabled="True" />
+                                                <!-- 引用图片 -->
+                                                <Image Source="{x:Bind QuoteImageUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
+                                                       MaxWidth="100"
+                                                       MaxHeight="100"
+                                                       Stretch="Uniform"
+                                                       Tapped="Image_Tapped"
+                                                       Tag="{x:Bind QuoteImageUrl, Mode=OneWay}"
+                                                       Visibility="{x:Bind QuoteImageUrl, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}" />
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -387,7 +488,7 @@
                                         HorizontalAlignment="Right"
                                         MaxWidth="400"
                                         Background="{ThemeResource SystemControlHighlightAccentBrush}">
-                                    <StackPanel>
+                                    <StackPanel Spacing="6">
                                         <!-- 文本消息 -->
                                         <TextBlock Text="{x:Bind Text, Mode=OneWay}"
                                                    TextWrapping="WrapWholeWords"
@@ -403,6 +504,32 @@
                                                Tapped="Image_Tapped"
                                                Tag="{x:Bind ImageUrl, Mode=OneWay}"
                                                Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=2}" />
+
+                                        <!-- 引用消息 -->
+                                        <Border Background="#3A3A3A"
+                                                CornerRadius="4"
+                                                Padding="8,6"
+                                                BorderBrush="#2A2A2A"
+                                                BorderThickness="2,0,0,0"
+                                                Visibility="{x:Bind HasQuote, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{x:Bind QuoteMsgText, Mode=OneWay}"
+                                                           FontSize="12"
+                                                           Foreground="#B0B0B0"
+                                                           TextWrapping="Wrap"
+                                                           MaxLines="3"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           IsTextSelectionEnabled="True" />
+                                                <!-- 引用图片 -->
+                                                <Image Source="{x:Bind QuoteImageUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
+                                                       MaxWidth="100"
+                                                       MaxHeight="100"
+                                                       Stretch="Uniform"
+                                                       Tapped="Image_Tapped"
+                                                       Tag="{x:Bind QuoteImageUrl, Mode=OneWay}"
+                                                       Visibility="{x:Bind QuoteImageUrl, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}" />
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

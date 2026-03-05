@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HuFu.Services;
+using Microsoft.UI.Xaml;
 
 namespace HuFu.Pages;
 
@@ -20,6 +21,43 @@ public sealed partial class ProfilePage : Page
     private async void ProfilePage_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         await ViewModel.LoadUserInfoAsync();
+    }
+
+    private async void LogoutButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "退出登录",
+            Content = "确定要退出登录吗？",
+            PrimaryButtonText = "确定",
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            // 清除登录信息
+            SessionStore.Token = string.Empty;
+            SessionStore.UserId = string.Empty;
+            
+            // 导航到登录页
+            if (this.Frame != null)
+            {
+                // 先导航到根 Frame
+                var rootFrame = Window.Current?.Content as Frame;
+                if (rootFrame != null)
+                {
+                    rootFrame.Navigate(typeof(LoginPage));
+                }
+                else
+                {
+                    // 如果找不到根 Frame，尝试从当前 Frame 导航
+                    this.Frame.Navigate(typeof(LoginPage));
+                }
+            }
+        }
     }
 }
 

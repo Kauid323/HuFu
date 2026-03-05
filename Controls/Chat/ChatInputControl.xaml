@@ -18,6 +18,67 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- 表情选择器悬浮面板 -->
+        <Border x:Name="EmojiPickerPopup"
+                Grid.Row="1"
+                Width="400"
+                Height="300"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="16"
+                Visibility="Collapsed"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Margin="8,-308,0,0"
+                Canvas.ZIndex="1000">
+            <Border.Shadow>
+                <ThemeShadow />
+            </Border.Shadow>
+            
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 标题栏 -->
+                <Grid Margin="0,0,0,12">
+                    <TextBlock Text="表情选择器" 
+                               FontSize="16" 
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <Button HorizontalAlignment="Right"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            MinWidth="32"
+                            MinHeight="32"
+                            Padding="0"
+                            Click="CloseEmojiPicker_Click">
+                        <FontIcon Glyph="&#xE711;" FontSize="14" />
+                    </Button>
+                </Grid>
+
+                <!-- TODO 内容区 -->
+                <ScrollViewer Grid.Row="1">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="TODO: 表情列表待实现"
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,80,0,0" />
+                        <TextBlock Text="可以在这里添加常用表情、emoji、贴纸等"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                   HorizontalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
         <!-- 拖拽调大小的边缘热区 -->
         <Rectangle x:Name="ResizeHandle"
                    Height="4"
@@ -52,7 +113,7 @@
                 </Button.Content>
             </Button>
             
-            <Button MinWidth="32" MinHeight="32" Padding="4" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="表情">
+            <Button MinWidth="32" MinHeight="32" Padding="4" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="表情" Click="EmojiButton_Click" x:Name="EmojiButton">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <FontIcon Glyph="&#xE76E;" FontSize="16" />

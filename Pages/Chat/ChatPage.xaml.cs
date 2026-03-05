@@ -347,7 +347,15 @@ public class ChatViewModel : INotifyPropertyChanged
                     Top = data.Top == 1,
                     Owner = data.Owner,
                     MyGroupNickname = data.MyGroupNickname,
-                    GroupCode = data.GroupCode
+                    GroupCode = data.GroupCode,
+                    CommunityName = data.CommunityName,
+                    IsPrivate = data.Private == 1,
+                    Recommandation = data.Recommandation == 1,
+                    HideGroupMembers = data.HideGroupMembers == 1,
+                    AutoDeleteMessage = data.AutoDeleteMessage,
+                    DenyMembersUploadToGroupDisk = data.DenyMembersUploadToGroupDisk == 1,
+                    PermissionLevel = (int)data.PermissonLevel,
+                    LimitedMsgType = data.LimitedMsgType
                 };
             }
             else
@@ -413,6 +421,12 @@ public class ChatViewModel : INotifyPropertyChanged
                                         && !string.IsNullOrEmpty(CurrentUserId)
                                         && string.Equals(m.Sender?.ChatId, CurrentUserId, StringComparison.OrdinalIgnoreCase)),
                             Tags = m.Sender?.Tag?.Select(t => new TagDisplayItem { Text = t.Text, Color = t.Color }).ToList() ?? new(),
+                            // 引用消息
+                            QuoteMsgId = m.QuoteMsgId ?? string.Empty,
+                            QuoteMsgText = m.Content?.QuoteMsgText ?? string.Empty,
+                            QuoteImageUrl = m.Content?.QuoteImageUrl ?? string.Empty,
+                            QuoteImageName = m.Content?.QuoteImageName ?? string.Empty,
+                            QuoteVideoUrl = m.Content?.QuoteVideoUrl ?? string.Empty
                         });
                     }
                     _oldestMsgId = Messages.FirstOrDefault()?.MsgId;
@@ -461,6 +475,12 @@ public class ChatViewModel : INotifyPropertyChanged
                                 && !string.IsNullOrEmpty(CurrentUserId)
                                 && string.Equals(m.Sender?.ChatId, CurrentUserId, StringComparison.OrdinalIgnoreCase)),
                     Tags = m.Sender?.Tag?.Select(t => new TagDisplayItem { Text = t.Text, Color = t.Color }).ToList() ?? new(),
+                    // 引用消息
+                    QuoteMsgId = m.QuoteMsgId ?? string.Empty,
+                    QuoteMsgText = m.Content?.QuoteMsgText ?? string.Empty,
+                    QuoteImageUrl = m.Content?.QuoteImageUrl ?? string.Empty,
+                    QuoteImageName = m.Content?.QuoteImageName ?? string.Empty,
+                    QuoteVideoUrl = m.Content?.QuoteVideoUrl ?? string.Empty
                 });
             }
             
@@ -568,6 +588,14 @@ public class MessageDisplayItem
     public string ImageUrl { get; set; } = string.Empty;
 
     public List<TagDisplayItem> Tags { get; set; } = new();
+    
+    // 引用消息相关
+    public string QuoteMsgId { get; set; } = string.Empty;
+    public string QuoteMsgText { get; set; } = string.Empty;
+    public string QuoteImageUrl { get; set; } = string.Empty;
+    public string QuoteImageName { get; set; } = string.Empty;
+    public string QuoteVideoUrl { get; set; } = string.Empty;
+    public bool HasQuote => !string.IsNullOrEmpty(QuoteMsgId);
 }
 
 public class TagDisplayItem
@@ -592,4 +620,28 @@ public class GroupInfoDisplayItem
     public string Owner { get; set; } = string.Empty;
     public string MyGroupNickname { get; set; } = string.Empty;
     public string GroupCode { get; set; } = string.Empty;
+    public string CommunityName { get; set; } = string.Empty;
+    public bool IsPrivate { get; set; }
+    public bool Recommandation { get; set; }
+    public bool HideGroupMembers { get; set; }
+    public long AutoDeleteMessage { get; set; }
+    public bool DenyMembersUploadToGroupDisk { get; set; }
+    public int PermissionLevel { get; set; }
+    public string LimitedMsgType { get; set; } = string.Empty;
+    
+    public string PermissionLevelText => PermissionLevel switch
+    {
+        100 => "群主",
+        2 => "管理员",
+        _ => "普通成员"
+    };
+    
+    public string AutoDeleteMessageText => AutoDeleteMessage switch
+    {
+        0 => "永久保留",
+        90 => "2个月后删除",
+        365 => "1年后删除",
+        730 => "2年后删除",
+        _ => $"{AutoDeleteMessage}天后删除"
+    };
 }

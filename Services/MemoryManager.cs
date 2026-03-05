@@ -8,9 +8,9 @@ namespace HuFu.Services;
 public static class MemoryManager
 {
     private static Timer? _gcTimer;
-    private const long MemoryThreshold = 80 * 1024 * 1024; // 80MB 强制清理阈值
-    private const long CriticalThreshold = 150 * 1024 * 1024; // 150MB 严重阈值
-    private const int CheckIntervalMs = 10000; // 10秒检查一次
+    private const long MemoryThreshold = 50 * 1024 * 1024; // 50MB 强制清理阈值
+    private const long CriticalThreshold = 100 * 1024 * 1024; // 100MB 严重阈值
+    private const int CheckIntervalMs = 5000; // 5秒检查一次
 
     public static void StartMonitoring()
     {

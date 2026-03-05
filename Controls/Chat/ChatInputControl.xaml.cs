@@ -31,6 +31,19 @@ public sealed partial class ChatInputControl : UserControl
     private bool _isResizing = false;
     private double _initialPointerY;
     private double _initialHeight;
+    private bool _isEmojiPickerOpen = false;
+
+    private void EmojiButton_Click(object sender, RoutedEventArgs e)
+    {
+        _isEmojiPickerOpen = !_isEmojiPickerOpen;
+        EmojiPickerPopup.Visibility = _isEmojiPickerOpen ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void CloseEmojiPicker_Click(object sender, RoutedEventArgs e)
+    {
+        _isEmojiPickerOpen = false;
+        EmojiPickerPopup.Visibility = Visibility.Collapsed;
+    }
 
     private void ResizeHandle_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
