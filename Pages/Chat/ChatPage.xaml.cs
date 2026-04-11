@@ -196,15 +196,18 @@ public class ChatViewModel : INotifyPropertyChanged
     public int ActiveConversationChatType
     {
         get => _activeConversationChatType;
-        private set 
-        { 
-            _activeConversationChatType = value; 
+        private set
+        {
+            _activeConversationChatType = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(SubtitleVisibility));
+            OnPropertyChanged(nameof(VoiceRoomButtonVisibility));
         }
     }
 
     public Visibility SubtitleVisibility => ActiveConversationChatType == 2 ? Visibility.Visible : Visibility.Collapsed;
+    
+    public Visibility VoiceRoomButtonVisibility => ActiveConversationChatType == 2 ? Visibility.Visible : Visibility.Collapsed;
 
     private Visibility _emptyHintVisibility = Visibility.Visible;
     public Visibility EmptyHintVisibility
@@ -584,7 +587,7 @@ public class MessageDisplayItem
     public string TimeString { get; set; } = string.Empty;
     public string Direction { get; set; } = string.Empty;
     public bool IsMine { get; set; }
-    public ulong ContentType { get; set; } = 1; // 1-文本，2-图片
+    public ulong ContentType { get; set; } = 1; // 1-文本，2-图片，3-markdown
     public string ImageUrl { get; set; } = string.Empty;
 
     public List<TagDisplayItem> Tags { get; set; } = new();

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="HuFu.Pages.PostDetailPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:HuFu.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <converters:RefererImageConverter x:Key="RefererImageConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 顶部导航栏 -->
+        <Grid Grid.Row="0" Padding="16,12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button Click="BackButton_Click"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="8">
+                    <FontIcon Glyph="&#xE72B;" FontSize="16" />
+                </Button>
+                <TextBlock Text="文章详情" 
+                           FontSize="16" 
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 加载指示器 -->
+        <ProgressRing Grid.Row="1"
+                      IsActive="{x:Bind IsLoading, Mode=OneWay}"
+                      Width="40"
+                      Height="40"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Visibility="{x:Bind IsLoading, Mode=OneWay}" />
+
+        <!-- 文章内容 -->
+        <ScrollViewer Grid.Row="1"
+                      Visibility="{x:Bind IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}">
+            <StackPanel Padding="16" Spacing="16">
+                <!-- 文章标题 -->
+                <TextBlock Text="{x:Bind PostTitle, Mode=OneWay}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           TextWrapping="Wrap" />
+
+                <!-- 作者信息 -->
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <PersonPicture Width="40" 
+                                   Height="40"
+                                   ProfilePicture="{x:Bind AuthorAvatar, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
+                                   DisplayName="{x:Bind AuthorName, Mode=OneWay}" />
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{x:Bind AuthorName, Mode=OneWay}"
+                                       FontWeight="SemiBold"
+                                       FontSize="15" />
+                            <Border Background="#FFD700"
+                                    CornerRadius="4"
+                                    Padding="4,2"
+                                    Visibility="{x:Bind IsVip, Mode=OneWay}">
+                                <TextBlock Text="VIP"
+                                           FontSize="10"
+                                           Foreground="White"
+                                           FontWeight="Bold" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind CreateTime, Mode=OneWay}"
+                                   FontSize="13"
+                                   Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 分隔线 -->
+                <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                <!-- 文章内容 - 普通文本 -->
+                <TextBlock Text="{x:Bind PostContent, Mode=OneWay}"
+                           FontSize="15"
+                           TextWrapping="Wrap"
+                           LineHeight="24"
+                           IsTextSelectionEnabled="True"
+                           Visibility="{x:Bind IsMarkdown, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}" />
+
+                <!-- 文章内容 - Markdown (WebView2) -->
+                <WebView2 x:Name="MarkdownWebView"
+                          MinHeight="200"
+                          Visibility="{x:Bind IsMarkdown, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                <!-- 分隔线 -->
+                <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" Margin="0,16,0,0" />
+
+                <!-- 互动按钮 -->
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 点赞 -->
+                    <Button Grid.Column="0"
+                            HorizontalAlignment="Stretch"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE8E1;" FontSize="18" />
+                            <TextBlock Text="{x:Bind LikeNum, Mode=OneWay}" FontSize="14" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 评论 -->
+                    <Button Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE8F2;" FontSize="18" />
+                            <TextBlock Text="{x:Bind CommentNum, Mode=OneWay}" FontSize="14" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 收藏 -->
+                    <Button Grid.Column="2"
+                            HorizontalAlignment="Stretch"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE734;" FontSize="18" />
+                            <TextBlock Text="{x:Bind CollectNum, Mode=OneWay}" FontSize="14" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

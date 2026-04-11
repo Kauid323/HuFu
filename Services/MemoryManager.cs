@@ -7,7 +7,7 @@ namespace HuFu.Services;
 
 public static class MemoryManager
 {
-    private static Timer? _gcTimer;
+    private static System.Timers.Timer? _gcTimer;
     private const long MemoryThreshold = 50 * 1024 * 1024; // 50MB 强制清理阈值
     private const long CriticalThreshold = 100 * 1024 * 1024; // 100MB 严重阈值
     private const int CheckIntervalMs = 5000; // 5秒检查一次
@@ -19,7 +19,7 @@ public static class MemoryManager
         // 配置 GC 为服务器模式和低延迟
         GCSettings.LatencyMode = GCLatencyMode.Interactive;
 
-        _gcTimer = new Timer(CheckIntervalMs);
+        _gcTimer = new System.Timers.Timer(CheckIntervalMs);
         _gcTimer.Elapsed += OnCheckMemory;
         _gcTimer.AutoReset = true;
         _gcTimer.Enabled = true;

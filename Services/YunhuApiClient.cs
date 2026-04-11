@@ -235,6 +235,62 @@ public sealed class YunhuApiClient
         return info.Parser.ParseFrom(bytes);
     }
 
+    public async Task<VoiceRoomListResponse> GetGroupVoiceRoomsAsync(string token, string groupId)
+    {
+        var req = new { groupId };
+        
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/group/live-room");
+        request.Headers.Add("token", token);
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(req, JsonOptions),
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<VoiceRoomListResponse>(responseText, JsonOptions);
+        if (result is null)
+        {
+            throw new InvalidOperationException($"failed to parse response: {responseText}");
+        }
+
+        return result;
+    }
+
+    public async Task<VoiceJoinTokenResponse> GetVoiceJoinTokenAsync(string token, string roomId, string chatId)
+    {
+        var req = new { roomId, chatId };
+        
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/live/add");
+        request.Headers.Add("token", token);
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(req, JsonOptions),
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<VoiceJoinTokenResponse>(responseText, JsonOptions);
+        if (result is null)
+        {
+            throw new InvalidOperationException($"failed to parse response: {responseText}");
+        }
+
+        return result;
+    }
+
     private async Task<T> PostJsonAsync<T>(string path, object? body)
     {
         HttpContent? content = null;
@@ -324,5 +380,283 @@ public sealed class YunhuApiClient
 
         [JsonPropertyName("msg")]
         public string? Msg { get; set; }
+    }
+
+    public sealed class VoiceRoomListResponse
+    {
+        [JsonPropertyName("code")]
+        public int Code { get; set; }
+
+        [JsonPropertyName("msg")]
+        public string? Msg { get; set; }
+
+        [JsonPropertyName("data")]
+        public VoiceRoomListData? Data { get; set; }
+    }
+
+    public sealed class VoiceRoomListData
+    {
+        [JsonPropertyName("rooms")]
+        public VoiceRoomInfo[] Rooms { get; set; } = Array.Empty<VoiceRoomInfo>();
+    }
+
+    public sealed class VoiceRoomInfo
+    {
+        [JsonPropertyName("userId")]
+        public string UserId { get; set; } = string.Empty;
+
+        [JsonPropertyName("roomId")]
+        public string RoomId { get; set; } = string.Empty;
+
+        [JsonPropertyName("chatId")]
+        public string ChatId { get; set; } = string.Empty;
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; } = string.Empty;
+
+        [JsonPropertyName("chatType")]
+        public int ChatType { get; set; }
+
+        [JsonPropertyName("status")]
+        public int Status { get; set; }
+
+        [JsonPropertyName("createBy")]
+        public string CreateBy { get; set; } = string.Empty;
+
+        [JsonPropertyName("createTime")]
+        public long CreateTime { get; set; }
+
+        [JsonPropertyName("nickname")]
+        public string Nickname { get; set; } = string.Empty;
+
+        [JsonPropertyName("count")]
+        public int Count { get; set; }
+
+        [JsonPropertyName("avatarUrl")]
+        public string AvatarUrl { get; set; } = string.Empty;
+    }
+
+    public sealed class VoiceJoinTokenResponse
+    {
+        [JsonPropertyName("code")]
+        public int Code { get; set; }
+
+        [JsonPropertyName("msg")]
+        public string? Msg { get; set; }
+
+        [JsonPropertyName("data")]
+        public VoiceJoinTokenData? Data { get; set; }
+    }
+
+    public sealed class VoiceJoinTokenData
+    {
+        [JsonPropertyName("joinToken")]
+        public string JoinToken { get; set; } = string.Empty;
+    }
+
+    public async Task<RecommendPostsResponse> GetRecommendPostsAsync(string token, int size = 20, int page = 1)
+    {
+        var req = new { size, page };
+        
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/community/posts/post-list-recommend");
+        request.Headers.Add("token", token);
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(req, JsonOptions),
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<RecommendPostsResponse>(responseText, JsonOptions);
+        if (result is null)
+        {
+            throw new InvalidOperationException($"failed to parse response: {responseText}");
+        }
+
+        return result;
+    }
+
+    public async Task<PostDetailResponse> GetPostDetailAsync(string token, int postId)
+    {
+        var req = new { id = postId };
+        
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/community/posts/post-detail");
+        request.Headers.Add("token", token);
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(req, JsonOptions),
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<PostDetailResponse>(responseText, JsonOptions);
+        if (result is null)
+        {
+            throw new InvalidOperationException($"failed to parse response: {responseText}");
+        }
+
+        return result;
+    }
+
+    public sealed class RecommendPostsResponse
+    {
+        [JsonPropertyName("code")]
+        public int Code { get; set; }
+
+        [JsonPropertyName("msg")]
+        public string? Msg { get; set; }
+
+        [JsonPropertyName("data")]
+        public RecommendPostsData? Data { get; set; }
+    }
+
+    public sealed class RecommendPostsData
+    {
+        [JsonPropertyName("posts")]
+        public PostInfo[] Posts { get; set; } = Array.Empty<PostInfo>();
+
+        [JsonPropertyName("total")]
+        public int Total { get; set; }
+    }
+
+    public sealed class PostInfo
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("baId")]
+        public int BaId { get; set; }
+
+        [JsonPropertyName("senderId")]
+        public string SenderId { get; set; } = string.Empty;
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; } = string.Empty;
+
+        [JsonPropertyName("contentType")]
+        public int ContentType { get; set; }
+
+        [JsonPropertyName("content")]
+        public string Content { get; set; } = string.Empty;
+
+        [JsonPropertyName("createTime")]
+        public long CreateTime { get; set; }
+
+        [JsonPropertyName("likeNum")]
+        public int LikeNum { get; set; }
+
+        [JsonPropertyName("commentNum")]
+        public int CommentNum { get; set; }
+
+        [JsonPropertyName("collectNum")]
+        public int CollectNum { get; set; }
+
+        [JsonPropertyName("amountNum")]
+        public double AmountNum { get; set; }
+
+        [JsonPropertyName("senderNickname")]
+        public string SenderNickname { get; set; } = string.Empty;
+
+        [JsonPropertyName("senderAvatar")]
+        public string SenderAvatar { get; set; } = string.Empty;
+
+        [JsonPropertyName("isLiked")]
+        public string IsLiked { get; set; } = "0";
+
+        [JsonPropertyName("isCollected")]
+        public int IsCollected { get; set; }
+
+        [JsonPropertyName("isVip")]
+        public int IsVip { get; set; }
+    }
+
+    public sealed class PostDetailResponse
+    {
+        [JsonPropertyName("code")]
+        public int Code { get; set; }
+
+        [JsonPropertyName("msg")]
+        public string? Msg { get; set; }
+
+        [JsonPropertyName("data")]
+        public PostDetailData? Data { get; set; }
+    }
+
+    public sealed class PostDetailData
+    {
+        [JsonPropertyName("post")]
+        public PostDetailInfo? Post { get; set; }
+
+        [JsonPropertyName("isAdmin")]
+        public int IsAdmin { get; set; }
+    }
+
+    public sealed class PostDetailInfo
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("baId")]
+        public int BaId { get; set; }
+
+        [JsonPropertyName("senderId")]
+        public string SenderId { get; set; } = string.Empty;
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; } = string.Empty;
+
+        [JsonPropertyName("contentType")]
+        public int ContentType { get; set; }
+
+        [JsonPropertyName("content")]
+        public string Content { get; set; } = string.Empty;
+
+        [JsonPropertyName("createTime")]
+        public long CreateTime { get; set; }
+
+        [JsonPropertyName("likeNum")]
+        public int LikeNum { get; set; }
+
+        [JsonPropertyName("commentNum")]
+        public int CommentNum { get; set; }
+
+        [JsonPropertyName("collectNum")]
+        public int CollectNum { get; set; }
+
+        [JsonPropertyName("amountNum")]
+        public double AmountNum { get; set; }
+
+        [JsonPropertyName("senderNickname")]
+        public string SenderNickname { get; set; } = string.Empty;
+
+        [JsonPropertyName("senderAvatar")]
+        public string SenderAvatar { get; set; } = string.Empty;
+
+        [JsonPropertyName("createTimeText")]
+        public string CreateTimeText { get; set; } = string.Empty;
+
+        [JsonPropertyName("isLiked")]
+        public int IsLiked { get; set; }
+
+        [JsonPropertyName("isCollected")]
+        public int IsCollected { get; set; }
+
+        [JsonPropertyName("isReward")]
+        public int IsReward { get; set; }
+
+        [JsonPropertyName("isVip")]
+        public int IsVip { get; set; }
     }
 }

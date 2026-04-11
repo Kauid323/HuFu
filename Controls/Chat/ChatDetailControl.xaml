@@ -42,6 +42,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <StackPanel Spacing="2" VerticalAlignment="Center">
@@ -55,10 +56,24 @@
                            Visibility="{x:Bind ViewModel.SubtitleVisibility, Mode=OneWay}" />
             </StackPanel>
 
-            <Button Grid.Column="1" 
-                    MinWidth="36" 
-                    MinHeight="36" 
-                    Padding="0" 
+            <Button Grid.Column="1"
+                    MinWidth="36"
+                    MinHeight="36"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="VoiceRoomButton_Click"
+                    Visibility="{x:Bind ViewModel.VoiceRoomButtonVisibility, Mode=OneWay}"
+                    ToolTipService.ToolTip="查看语音房间">
+                <Button.Content>
+                    <FontIcon Glyph="&#xE8BD;" />
+                </Button.Content>
+            </Button>
+
+            <Button Grid.Column="2"
+                    MinWidth="36"
+                    MinHeight="36"
+                    Padding="0"
                     Background="Transparent"
                     BorderThickness="0"
                     Click="InfoButton_Click">
@@ -410,6 +425,10 @@
                                                    TextWrapping="WrapWholeWords"
                                                    IsTextSelectionEnabled="True"
                                                    Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=1}" />
+
+                                        <controls:MarkdownMessageControl MarkdownText="{x:Bind Text, Mode=OneWay}"
+                                                                         IsMine="False"
+                                                                         Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=3}" />
                                         
                                         <!-- 图片消息 -->
                                         <Image Source="{x:Bind ImageUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
@@ -495,6 +514,10 @@
                                                    IsTextSelectionEnabled="True"
                                                    Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
                                                    Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=1}" />
+
+                                        <controls:MarkdownMessageControl MarkdownText="{x:Bind Text, Mode=OneWay}"
+                                                                         IsMine="True"
+                                                                         Visibility="{x:Bind ContentType, Mode=OneWay, Converter={StaticResource ContentTypeToVisibilityConverter}, ConverterParameter=3}" />
                                         
                                         <!-- 图片消息 -->
                                         <Image Source="{x:Bind ImageUrl, Mode=OneWay, Converter={StaticResource RefererImageConverter}}"
