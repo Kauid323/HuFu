@@ -16,7 +16,7 @@
     </Page.Resources>
 
     <ScrollViewer>
-        <StackPanel Padding="40" Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
+        <StackPanel Padding="40" Spacing="24" HorizontalAlignment="Stretch">
             <TextBlock Text="个人资料" FontSize="28" FontWeight="Bold" />
 
             <!-- 头部：头像与基本信息 -->
@@ -34,7 +34,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                         <TextBlock Text="{x:Bind ViewModel.Nickname, Mode=OneWay}" FontSize="24" FontWeight="Bold" />
                         <Border Background="{ThemeResource AccentFillColorDefaultBrush}" 
-                                CornerRadius="4" Padding="8,2" 
+                                CornerRadius="999" Padding="10,3" 
                                 Visibility="{x:Bind ViewModel.VipExpiry, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
                             <TextBlock Text="VIP" FontSize="12" Foreground="White" FontWeight="Bold"/>
                         </Border>

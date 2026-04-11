@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:HuFu.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:controls="using:HuFu.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -93,9 +94,8 @@
                            Visibility="{x:Bind IsMarkdown, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}" />
 
                 <!-- 文章内容 - Markdown (WebView2) -->
-                <WebView2 x:Name="MarkdownWebView"
-                          MinHeight="200"
-                          Visibility="{x:Bind IsMarkdown, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <controls:MarkdownMessageControl MarkdownText="{x:Bind PostContent, Mode=OneWay}"
+                                                 Visibility="{x:Bind IsMarkdown, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                 <!-- 分隔线 -->
                 <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" Margin="0,16,0,0" />

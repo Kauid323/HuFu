@@ -105,7 +105,7 @@
                 </Button.Content>
             </Button>
             
-            <Button MinWidth="32" MinHeight="32" Padding="4" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="发送图片">
+            <Button MinWidth="32" MinHeight="32" Padding="4" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="发送图片" Click="ImageButton_Click">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <FontIcon Glyph="&#xEB9F;" FontSize="16" />

@@ -9,6 +9,8 @@ public class MessageScrollHelper
     private readonly ListView _messageListView;
     private readonly Func<System.Threading.Tasks.Task> _loadMoreAction;
     private ScrollViewer? _scrollViewer;
+    private bool _isLoading;
+    private const double PreloadThreshold = 120.0;
 
     public MessageScrollHelper(ListView messageListView, Func<System.Threading.Tasks.Task> loadMoreAction)
     {
@@ -55,11 +57,24 @@ public class MessageScrollHelper
     {
         if (sender is ScrollViewer sv)
         {
-            if (!e.IsIntermediate && sv.VerticalOffset < 1.0)
+            if (!e.IsIntermediate && !_isLoading && sv.VerticalOffset <= PreloadThreshold)
             {
-                System.Diagnostics.Debug.WriteLine("Top reached, triggering LoadMoreMessagesAsync");
-                _ = _loadMoreAction();
+                System.Diagnostics.Debug.WriteLine("Near top, triggering LoadMoreMessagesAsync");
+                _isLoading = true;
+                _ = LoadMoreAsync();
             }
+        }
+    }
+
+    private async System.Threading.Tasks.Task LoadMoreAsync()
+    {
+        try
+        {
+            await _loadMoreAction();
+        }
+        finally
+        {
+            _isLoading = false;
         }
     }
 

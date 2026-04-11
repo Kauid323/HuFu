@@ -210,6 +210,51 @@ public sealed class YunhuApiClient
         return send_message.Parser.ParseFrom(bytes);
     }
 
+    public async Task<send_message> SendImageMessageAsync(string token, string chatId, long chatType, ImageUploadResult upload)
+    {
+        var msgId = Guid.NewGuid().ToString("N");
+
+        var req = new send_message_send
+        {
+            MsgId = msgId,
+            ChatId = chatId,
+            ChatType = chatType,
+            ContentType = 2, // 2-图片
+            Content = new send_message_send.Types.Content
+            {
+                Image = upload.FileKey
+            },
+            Media = new send_message_send.Types.Media
+            {
+                FileKey = upload.FileKey,
+                FileKey2 = upload.FileKey,
+                FileHash = upload.FileHash ?? string.Empty,
+                FileType = upload.FileType ?? string.Empty,
+                ImageHeight = upload.ImageHeight,
+                ImageWidth = upload.ImageWidth,
+                FileSize = upload.FileSize,
+                FileSuffix = upload.FileSuffix ?? string.Empty
+            }
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/msg/send-message");
+        request.Headers.Add("token", token);
+        request.Headers.Accept.Clear();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-protobuf"));
+        request.Content = new ByteArrayContent(req.ToByteArray());
+        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-protobuf");
+
+        using var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {error}");
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        return send_message.Parser.ParseFrom(bytes);
+    }
+
     public async Task<info> GetGroupInfoAsync(string token, string groupId)
     {
         var req = new info_send

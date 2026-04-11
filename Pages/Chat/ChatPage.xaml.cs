@@ -135,6 +135,7 @@ public sealed partial class ChatPage : Page
 public class ChatViewModel : INotifyPropertyChanged
 {
     private readonly YunhuApiClient _api = new();
+    private readonly ImageUploadService _imageUpload = new();
 
     public string CurrentUserId { get; } = SessionStore.UserId ?? string.Empty;
 
@@ -556,6 +557,46 @@ public class ChatViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error sending message: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> SendImageAsync(byte[] bytes, string? fileName, string? contentType)
+    {
+        if (SelectedConversation is null || bytes.Length == 0) return false;
+
+        var token = SessionStore.Token;
+        if (string.IsNullOrEmpty(token)) return false;
+
+        try
+        {
+            var upload = await _imageUpload.UploadImageAsync(token, bytes, fileName, contentType);
+            var resp = await _api.SendImageMessageAsync(token, SelectedConversation.ChatId, (long)SelectedConversation.ChatType, upload);
+
+            if (resp.Status?.Code == 1)
+            {
+                var newMsg = new MessageDisplayItem
+                {
+                    MsgId = Guid.NewGuid().ToString("N"),
+                    SenderName = "我",
+                    SenderAvatarUrl = string.Empty,
+                    Text = string.Empty,
+                    TimeString = FormatTimestamp(DateTimeOffset.Now.ToUnixTimeMilliseconds()),
+                    Direction = "right",
+                    ContentType = 2,
+                    ImageUrl = upload.ImageUrl,
+                    IsMine = true
+                };
+                Messages.Add(newMsg);
+                return true;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Failed to send image message: {resp.Status?.Msg}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error sending image: {ex.Message}");
             return false;
         }
     }

@@ -2,10 +2,22 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
+using System.IO;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using HuFu.Services;
 using HuFu.Pages;
 using Microsoft.UI.Text;
 using Windows.System;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Graphics.Imaging;
+using Windows.Storage.Streams;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Media;
+using WinRT.Interop;
 
 namespace HuFu.Controls;
 
@@ -101,6 +113,17 @@ public sealed partial class ChatInputControl : UserControl
 
     private void InputBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
     {
+        if (e.Key == VirtualKey.V && KeyboardState.IsKeyDown(VirtualKey.Control))
+        {
+            var data = Clipboard.GetContent();
+            if (data.Contains(StandardDataFormats.Bitmap))
+            {
+                e.Handled = true;
+                _ = HandleClipboardImageAsync(data);
+                return;
+            }
+        }
+
         var shortcut = SettingsService.CurrentSendShortcut;
         bool shouldSend = false;
 
@@ -148,6 +171,137 @@ public sealed partial class ChatInputControl : UserControl
                 System.Diagnostics.Debug.WriteLine($"消息发送失败: {content}");
             }
         }
+    }
+
+    private async void ImageButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null || ViewModel.SelectedConversation is null)
+            return;
+
+        var window = (Application.Current as App)?.MainWindow;
+        if (window is null)
+            return;
+
+        var picker = new FileOpenPicker();
+        picker.FileTypeFilter.Add(".png");
+        picker.FileTypeFilter.Add(".jpg");
+        picker.FileTypeFilter.Add(".jpeg");
+        picker.FileTypeFilter.Add(".gif");
+        picker.FileTypeFilter.Add(".webp");
+
+        var hwnd = WindowNative.GetWindowHandle(window);
+        InitializeWithWindow.Initialize(picker, hwnd);
+
+        StorageFile? file = await picker.PickSingleFileAsync();
+        if (file is null)
+            return;
+
+        var buffer = await FileIO.ReadBufferAsync(file);
+        var bytes = buffer.ToArray();
+        if (bytes.Length == 0)
+            return;
+
+        var (preview, mimeType, _) = await BuildPreviewAsync(bytes);
+
+        var dialog = new ContentDialog
+        {
+            Title = "发送图片",
+            Content = preview,
+            PrimaryButtonText = "发送",
+            CloseButtonText = "取消",
+            XamlRoot = this.XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            await ViewModel.SendImageAsync(bytes, file.Name, file.ContentType ?? mimeType);
+        }
+    }
+
+    private async Task HandleClipboardImageAsync(DataPackageView data)
+    {
+        if (ViewModel is null || ViewModel.SelectedConversation is null) return;
+
+        try
+        {
+            var bitmap = await data.GetBitmapAsync();
+            if (bitmap is null) return;
+
+            using var stream = await bitmap.OpenReadAsync();
+            var bytes = await ReadAllBytesAsync(stream);
+            if (bytes.Length == 0) return;
+
+            var (previewImage, mimeType, fileName) = await BuildPreviewAsync(bytes);
+
+            var dialog = new ContentDialog
+            {
+                Title = "发送图片",
+                Content = previewImage,
+                PrimaryButtonText = "发送",
+                CloseButtonText = "取消",
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                await ViewModel.SendImageAsync(bytes, fileName, mimeType);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Clipboard image failed: {ex.Message}");
+        }
+    }
+
+    private static async Task<byte[]> ReadAllBytesAsync(IRandomAccessStream stream)
+    {
+        using var reader = new DataReader(stream.GetInputStreamAt(0));
+        var size = (uint)stream.Size;
+        await reader.LoadAsync(size);
+        var bytes = new byte[size];
+        reader.ReadBytes(bytes);
+        return bytes;
+    }
+
+    private static async Task<(UIElement preview, string? mimeType, string fileName)> BuildPreviewAsync(byte[] bytes)
+    {
+        string? mimeType = null;
+        string fileName = "clipboard.png";
+
+        try
+        {
+            using var infoStream = new InMemoryRandomAccessStream();
+            await infoStream.WriteAsync(bytes.AsBuffer());
+            infoStream.Seek(0);
+            var decoder = await BitmapDecoder.CreateAsync(infoStream);
+            mimeType = decoder.DecoderInformation.MimeTypes.FirstOrDefault();
+            var ext = decoder.DecoderInformation.FileExtensions.FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(ext))
+            {
+                fileName = $"clipboard.{ext.TrimStart('.')}";
+            }
+        }
+        catch
+        {
+        }
+
+        var image = new Image
+        {
+            MaxWidth = 320,
+            MaxHeight = 320,
+            Stretch = Stretch.Uniform
+        };
+
+        using var previewStream = new InMemoryRandomAccessStream();
+        await previewStream.WriteAsync(bytes.AsBuffer());
+        previewStream.Seek(0);
+        var bitmap = new BitmapImage();
+        await bitmap.SetSourceAsync(previewStream);
+        image.Source = bitmap;
+
+        return (image, mimeType, fileName);
     }
 }
 

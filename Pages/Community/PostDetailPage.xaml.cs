@@ -215,11 +215,7 @@ public sealed partial class PostDetailPage : Page, INotifyPropertyChanged
                 IsVip = post.IsVip == 1;
                 IsMarkdown = post.ContentType == 2;
 
-                // 如果是 Markdown，渲染到 WebView2
-                if (IsMarkdown)
-                {
-                    await RenderMarkdownAsync(post.Content);
-                }
+                // Markdown 在 XAML 里用原生控件渲染
             }
         }
         catch (Exception ex)
@@ -244,107 +240,6 @@ public sealed partial class PostDetailPage : Page, INotifyPropertyChanged
         if (Frame.CanGoBack)
         {
             Frame.GoBack();
-        }
-    }
-
-    private async Task RenderMarkdownAsync(string markdown)
-    {
-        try
-        {
-            // 使用 Markdig 将 Markdown 转换为 HTML
-            var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-            var html = Markdown.ToHtml(markdown, pipeline);
-
-            // 创建完整的 HTML 页面
-            var fullHtml = $@"
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <style>
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            font-size: 15px;
-            line-height: 1.6;
-            color: #333;
-            padding: 16px;
-            margin: 0;
-        }}
-        h1, h2, h3, h4, h5, h6 {{
-            margin-top: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
-            line-height: 1.25;
-        }}
-        h1 {{ font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }}
-        h2 {{ font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }}
-        h3 {{ font-size: 1.25em; }}
-        p {{ margin-bottom: 16px; }}
-        code {{
-            background-color: rgba(27,31,35,0.05);
-            border-radius: 3px;
-            font-size: 85%;
-            margin: 0;
-            padding: 0.2em 0.4em;
-            font-family: 'Consolas', 'Monaco', monospace;
-        }}
-        pre {{
-            background-color: #f6f8fa;
-            border-radius: 3px;
-            font-size: 85%;
-            line-height: 1.45;
-            overflow: auto;
-            padding: 16px;
-        }}
-        pre code {{
-            background-color: transparent;
-            border: 0;
-            display: inline;
-            line-height: inherit;
-            margin: 0;
-            overflow: visible;
-            padding: 0;
-            word-wrap: normal;
-        }}
-        blockquote {{
-            border-left: 0.25em solid #dfe2e5;
-            color: #6a737d;
-            padding: 0 1em;
-            margin: 0 0 16px 0;
-        }}
-        ul, ol {{ padding-left: 2em; margin-bottom: 16px; }}
-        li {{ margin-bottom: 0.25em; }}
-        img {{ max-width: 100%; height: auto; }}
-        a {{ color: #0366d6; text-decoration: none; }}
-        a:hover {{ text-decoration: underline; }}
-        table {{
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 16px;
-        }}
-        table th, table td {{
-            border: 1px solid #dfe2e5;
-            padding: 6px 13px;
-        }}
-        table th {{
-            background-color: #f6f8fa;
-            font-weight: 600;
-        }}
-    </style>
-</head>
-<body>
-{html}
-</body>
-</html>";
-
-            // 加载到 WebView2
-            await MarkdownWebView.EnsureCoreWebView2Async();
-            MarkdownWebView.NavigateToString(fullHtml);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Markdown 渲染失败: {ex.Message}");
         }
     }
 
